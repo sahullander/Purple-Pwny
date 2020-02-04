@@ -57,11 +57,14 @@ f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subn
 
 ######## NMAP STUFF ########
 nm.scan(hosts=str(subnet), arguments='-sV --version-light')
+hostsCount = len(nm.all_hosts())
+f2 = open("IPList.txt","a+")
+f2.write('\n'.join(map(str,nm.all_hosts())))
+f2.close()
 try:
 	OS = nm['192.168.1.7']['osmatch']
 	f.write(OS)
 except:
-	print("error in osmatch")
 	pass
 
 f.write("Port    Service                  Details \n")
