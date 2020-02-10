@@ -72,8 +72,6 @@ services = [str(item).ljust(8," ") + nm['192.168.1.7']['tcp'][item]['name'].ljus
 print('\n'.join(map(str, services)))
 f.write('\n'.join(map(str, services)))
 
-## TEST LINE FOR KALI COMMIT ##
-
 """
 print(nm['192.168.1.1']['addresses']['mac'])
 ## gets OS possibilities (a list of dictionaries) ##
