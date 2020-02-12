@@ -38,7 +38,7 @@ f.write('Host IP: {0} \n'.format(IP))
 # Cross Platform way to get the following info but uses 2 imports
 for i in netifaces.interfaces():
    try:
-      if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("192"):
+      if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("192") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("10") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("172"):
          f.write("Operating System: {0} \n".format(platform.system()))
          netmask = netifaces.ifaddresses(i)[netifaces.AF_INET][0]['netmask']
          f.write("Network Mask: {0} \n".format(netmask))
@@ -56,43 +56,48 @@ print(subnet)
 f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subnet[-1]))
 
 ######## NMAP STUFF ########
-nm.scan(hosts=str(subnet), arguments='-sV --version-light')
+nm.scan(hosts=str(subnet), arguments='-O -sV')
 hostsCount = len(nm.all_hosts())
+f.write("Count of alive hosts: {0}".format(hostsCount))
 f2 = open("IPList.txt","a+")
 f2.write('\n'.join(map(str,nm.all_hosts())))
 f2.close()
-try:
-	OS = nm['192.168.1.7']['osmatch']
-	f.write(OS)
-except:
-	pass
-
-f.write("Port    Service                  Details \n")
-services = [str(item).ljust(8," ") + nm['192.168.1.7']['tcp'][item]['name'].ljust(25, " ") + nm['192.168.1.7']['tcp'][item]['product'] + " " + nm['192.168.1.7']['tcp'][item]['version'] for item in nm['192.168.1.7']['tcp'].keys()]
-print('\n'.join(map(str, services)))
-f.write('\n'.join(map(str, services)))
+for host in nm.all_hosts():
+	f.write("\n\nResults for IP: {0}\n".format(host))
+	try:
+		OS = nm[host]['osmatch'][0]['name']
+		f.write("OS: {0}\n".format(OS))
+	except:
+		f.write("OS: Not Found\n")
+	try:
+		f.write("Port    Service                  Details \n")
+		services = [str(item).ljust(8," ") + nm[host]['tcp'][item]['name'].ljust(25, " ") + nm[host]['tcp'][item]['product'] + " " + nm[host]['tcp'][item]['version'] for item in nm[host]['tcp'].keys()]
+		print('\n'.join(map(str, services)))
+		f.write('\n'.join(map(str, services)))
+	except:
+		pass
 
 """
 print(nm['192.168.1.1']['addresses']['mac'])
 ## gets OS possibilities (a list of dictionaries) ##
 ##### it looks like the first dictionary returned has the highest #####
 ##### 'accuracy' value however example I ran the first one was wrong... #####
-nm['192.168.1.7']['osmatch']
+nm['10.0.0.42']['osmatch']
 ## prints all details for a particular OS name including accuracy etc
-next(item for item in nm['192.168.1.7']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
+next(item for item in nm['10.0.0.42']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
 ## prints value associated with key (here its 'name') for a paricular OS name
-next(item['name'] for item in nm['192.168.1.7']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
+next(item['name'] for item in nm['10.0.0.42']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
 # get all open ports
-nm['192.168.1.7']['tcp'].keys()
+nm['10.0.0.42']['tcp'].keys()
 # save and then print all services on different lines
-services = [nm['192.168.1.7']['tcp'][item]['name'] for item in nm['192.168.1.7']['tcp'].keys()]
+services = [nm['10.0.0.42']['tcp'][item]['name'] for item in nm['10.0.0.42']['tcp'].keys()]
 print('\n'.join(map(str, services)))
 # get service running on port
-nm['192.168.1.7']['tcp'][135]['name']
+nm['10.0.0.42']['tcp'][135]['name']
 # get version of service of applicable
-nm['192.168.1.7']['tcp'][135]['product'] + nm['192.168.1.7']['tcp'][135]['version']
+nm['10.0.0.42']['tcp'][135]['product'] + nm['10.0.0.42']['tcp'][135]['version']
 # prints all services
-print([nm['192.168.1.7']['tcp'][item]['name'] for item in nm['192.168.1.7']['tcp'].keys()])
+print([nm['10.0.0.42']['tcp'][item]['name'] for item in nm['10.0.0.42']['tcp'].keys()])
 """
 
 endTime = datetime.now()
