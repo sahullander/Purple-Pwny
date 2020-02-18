@@ -3,6 +3,7 @@ import socket
 import struct
 import os
 import ipaddress
+import re
 import random, string
 from ftplib import FTP
 from datetime import datetime
@@ -56,13 +57,17 @@ print(subnet)
 f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subnet[-1]))
 
 ######## NMAP STUFF ########
-nm.scan(hosts=str(subnet), arguments='-O -sV')
+nm.scan(hosts=str(subnet), arguments='-O -sV --script vulners')
 hostsCount = len(nm.all_hosts())
+hostObjects = []
 f.write("Count of alive hosts: {0}".format(hostsCount))
 f2 = open("IPList.txt","a+")
 f2.write('\n'.join(map(str,nm.all_hosts())))
 f2.close()
 for host in nm.all_hosts():
+	cveCount = 0 # get len(tabs) / 3 for each port and add to cveCount
+	hostCVEAvg = [] # get weighted average for each port and append to this list
+	hostCVEScore = 0 # weighted average of hostCVEAvg
 	f.write("\n\nResults for IP: {0}\n".format(host))
 	try:
 		OS = nm[host]['osmatch'][0]['name']
@@ -71,13 +76,50 @@ for host in nm.all_hosts():
 		f.write("OS: Not Found\n")
 	try:
 		f.write("Port    Service                  Details \n")
-		services = [str(item).ljust(8," ") + nm[host]['tcp'][item]['name'].ljust(25, " ") + nm[host]['tcp'][item]['product'] + " " + nm[host]['tcp'][item]['version'] for item in nm[host]['tcp'].keys()]
-		print('\n'.join(map(str, services)))
-		f.write('\n'.join(map(str, services)))
+		for port in nm[host]['tcp'].keys():
+			service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
+			f.write(service + '\n')
+			try:
+				#--------- Gets score (as float) of each CVE only ---------#
+				tabs = []
+				cveScoreList = []
+				start = 1
+				for m in re.finditer('\t', nm[host]['tcp'][port]['script']['vulners']):
+					tabs.append(m.start())
+				cveCount = cveCount + (len(tabs) / 3)
+				while start <= len(tabs)-2:
+					cveScoreList.append(float(nm[host]['tcp'][port]['script']['vulners'][tabs[start]+1:tabs[start+1]]))
+					start += 3
+				#--- Gets weighted avg. CVE score for this service ---#
+				numerator = 0
+				denominator = sum(cveScoreList)
+				for score in cveScoreList:
+					numerator = numerator + (score * score)
+				serviceAvgScore = numerator / denominator
+				hostCVEAvg.append(serviceAvgScore)
+			except:
+				pass
+			# try:
+			# 	f.write(nm[host]['tcp'][port]['script']['vulners'] + '\n')
+			# except:
+			# 	pass
 	except:
 		pass
+	#-- Weighted avg. of CVEs for host --#
+	if len(hostCVEAvg) > 0:
+		hostNumerator = 0
+		hostDenominator = sum(hostCVEAvg)
+		for average in hostCVEAvg:
+			hostNumerator = hostNumerator + (average * average)
+		hostCVEScore = hostNumerator / hostDenominator
+	else:
+		pass
+	thisHost = {"IP":host,"CVEScore":hostCVEScore, "CVECount":cveCount}
+	hostObjects.append(thisHost)
+	f.write("Host statistics: {0}\n".format(thisHost))
 
 """
+nc['10.0.0.42']['tcp'][80]['script']['vulners']
 print(nm['192.168.1.1']['addresses']['mac'])
 ## gets OS possibilities (a list of dictionaries) ##
 ##### it looks like the first dictionary returned has the highest #####

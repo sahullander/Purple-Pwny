@@ -1,4 +1,4 @@
-Begin Script @ 2020-02-12 17:21:37.008227 
+Begin Script @ 2020-02-18 00:40:57.165238 
 
 ------ Your Host ------
 Host IP: 10.0.0.6 
@@ -14,6 +14,8 @@ OS: Not Found
 Port    Service                  Details 
 53      domain                    
 80      http                     nginx 
+Host statistics: {'IP': '10.0.0.15', 'CVEScore': 0, 'CVECount': 0}
+
 
 Results for IP: 10.0.0.42
 OS: Linux 2.6.9 - 2.6.33
@@ -40,11 +42,14 @@ Port    Service                  Details
 6000    X11                       
 6667    irc                      UnrealIRCd 
 8009    ajp13                    Apache Jserv 
-8180    http                     Apache Tomcat/Coyote JSP engine 1.1
+8180    unknown                   
+Host statistics: {'IP': '10.0.0.42', 'CVEScore': 5.999148491734642, 'CVECount': 99.0}
+
 
 Results for IP: 10.0.0.6
 OS: Not Found
 Port    Service                  Details 
+Host statistics: {'IP': '10.0.0.6', 'CVEScore': 0, 'CVECount': 0}
 
 
- End Script @ 2020-02-12 17:22:47.772936    ---   Total Runtime: 0:01:10.764709
+ End Script @ 2020-02-18 00:44:09.035473    ---   Total Runtime: 0:03:11.870235
