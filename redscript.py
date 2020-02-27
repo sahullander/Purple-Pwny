@@ -124,7 +124,10 @@ for host in nm.all_hosts():
 	except:
 		pass
 
-	if topCVEscore == 0:
+	if topCVEscore == -1:
+		severity = 'Inconclusive'
+		severityNum = -1
+	elif topCVEscore == 0:
 		severity = 'None'
 		severityNum = 0
 	elif topCVEscore >= 0.1 and topCVEscore <=  3.9:
@@ -154,46 +157,52 @@ printed3 = False
 printed2 = False
 printed1 = False
 printed0 = False
+printedNeg = False
 
 for sys in hostObjects:
 	if sys["SeverityNum"] == 4:
 		if printed4 == False:
 			printed4 = True
 			f.write("\n--- Vulnerability Level: Critical ---\n")
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 		else:
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 	elif sys["SeverityNum"] == 3:
 		if printed3 == False:
 			printed3 = True
 			f.write("\n--- Vulnerability Level: High ---\n")
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 
 		else:
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 	elif sys["SeverityNum"] == 2:
 		if printed2 == False:
 			printed2 = True
 			f.write("\n--- Vulnerability Level: Medium ---\n")
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 		else:
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 	elif sys["SeverityNum"] == 1:
 		if printed1 == False:
 			printed1 = True
 			f.write("\n--- Vulnerability Level: Low ---\n")
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 		else:
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 	elif sys["SeverityNum"] == 0:
 		if printed0 == False:
 			printed0 = True
 			f.write("\n--- Vulnerability Level: None ---\n")
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 		else:
-			f.write("IP: {0} - {9}\n\tSeverity: {1} ({2})\n\tCritical CVEs: {3}\n\tHigh CVEs: {4}\n\tMedium CVEs: {5}\n\tLow CVEs: {6}\n\tNone CVEs: {7}\n\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
-
-	# f.write("Host statistics: {0}\n".format(thisHost))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+	elif sys["SeverityNum"] == -1:
+		if printedNeg  == False:
+			printedNeg = True
+			f.write("\n--- Vulnerability Level: Inconclusive ---\n")
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
+		else:
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 
 """
 nc['10.0.0.42']['tcp'][80]['script']['vulners']
