@@ -1,0 +1,12 @@
+Begin Script @ 2020-02-27 03:48:44.758513 
+
+------ Your Host ------
+Host IP: 10.0.0.6 
+Operating System: Linux 
+Network Mask: 255.255.255.0 
+Gateway IP: 10.0.0.15 
+
+Initiating quick scan from host 10.0.0.0 to 10.0.0.255 
+Count of alive hosts: 3
+
+ End Script @ 2020-02-27 03:49:55.620170    ---   Total Runtime: 0:01:10.861657

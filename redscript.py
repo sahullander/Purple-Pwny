@@ -12,10 +12,8 @@ import platform
 
 startTime = datetime.now()
 
-# Generates a text-file with a random name
-# Open file for writing our output and create if its not created already - random name will make it always create
-rand_file = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(random.randrange(5,9))) + ".txt"
-f = open(rand_file,"a+")
+# Open file for writing our output and create if its not created already
+f = open("overview.txt","a+")
 
 # get host IP
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -47,7 +45,8 @@ for i in netifaces.interfaces():
          break
       else:
          pass
-   except:pass
+   except:
+	   pass
 
 # Creates an ipaddress object that is used to hold all of the IPs on the subnet
 subnet = ipaddress.ip_network(u'{0}/{1}'.format(IP, netmask),strict=False)
@@ -66,57 +65,91 @@ f2.write('\n'.join(map(str,nm.all_hosts())))
 f2.close()
 for host in nm.all_hosts():
 	cveCount = 0 # get len(tabs) / 3 for each port and add to cveCount
-	hostCVEAvg = [] # get weighted average for each port and append to this list
-	hostCVEScore = 0 # weighted average of hostCVEAvg
-	f.write("\n\nResults for IP: {0}\n".format(host))
+	topCVEscore = -1 # Highest CVE score for the system used to determine severity level
+	severity = 'Inconclusive' # System vulnerability status based on highest CVE score between all services
+	severityNum = 0 # map severity to a number 0-4 for ordering systems
+	countCritical = 0 # total number of CVEs that fall in that severity level
+	countHigh = 0 # total number of CVEs that fall in that severity level
+	countMedium = 0 # total number of CVEs that fall in that severity level
+	countLow = 0 # total number of CVEs that fall in that severity level
+	countNone = 0 # total number of CVEs that fall in that severity level
+	countMSMod = 0 # total number of Metasploit Modules found
+
+	# We can print all of this later after the objects are sorted
+	# f.write("\n\nResults for IP: {0}\n".format(host))
 	try:
 		OS = nm[host]['osmatch'][0]['name']
-		f.write("OS: {0}\n".format(OS))
 	except:
-		f.write("OS: Not Found\n")
+		 OS = 'Not Found'
 	try:
-		f.write("Port    Service                  Details \n")
+		# print later
+		# f.write("Port    Service                  Details \n")
 		for port in nm[host]['tcp'].keys():
-			service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
-			f.write(service + '\n')
+			# print later
+			# service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
+			# f.write(service + '\n')
 			try:
-				#--------- Gets score (as float) of each CVE only ---------#
 				tabs = []
 				cveScoreList = []
 				start = 1
+
 				for m in re.finditer('\t', nm[host]['tcp'][port]['script']['vulners']):
 					tabs.append(m.start())
 				cveCount = cveCount + (len(tabs) / 3)
+				currentCVEscore = float(nm[host]['tcp'][port]['script']['vulners'][tabs[1]+1:tabs[1]+2])
+				if currentCVEscore > topCVEscore:
+					topCVEscore = currentCVEscore
 				while start <= len(tabs)-2:
 					cveScoreList.append(float(nm[host]['tcp'][port]['script']['vulners'][tabs[start]+1:tabs[start+1]]))
 					start += 3
-				#--- Gets weighted avg. CVE score for this service ---#
-				numerator = 0
-				denominator = sum(cveScoreList)
+
 				for score in cveScoreList:
-					numerator = numerator + (score * score)
-				serviceAvgScore = numerator / denominator
-				hostCVEAvg.append(serviceAvgScore)
+					if currentCVEscore == 0:
+						countNone += 1
+					elif currentCVEscore >= 0.1 and currentCVEscore <=  3.9:
+						countLow += 1
+					elif currentCVEscore >= 4.0 and currentCVEscore <=  6.9:
+						countMedium += 1
+					elif currentCVEscore >= 7.0 and currentCVEscore <=  8.9:
+						countHigh += 1
+					elif currentCVEscore >= 9.0 and currentCVEscore <=  10:
+						countCritical += 1
+
 			except:
 				pass
-			# try:
-			# 	f.write(nm[host]['tcp'][port]['script']['vulners'] + '\n')
-			# except:
-			# 	pass
 	except:
 		pass
-	#-- Weighted avg. of CVEs for host --#
-	if len(hostCVEAvg) > 0:
-		hostNumerator = 0
-		hostDenominator = sum(hostCVEAvg)
-		for average in hostCVEAvg:
-			hostNumerator = hostNumerator + (average * average)
-		hostCVEScore = hostNumerator / hostDenominator
-	else:
-		pass
-	thisHost = {"IP":host,"CVEScore":hostCVEScore, "CVECount":cveCount}
+
+	if topCVEscore == 0:
+		severity = 'None'
+		severityNum = 0
+	elif topCVEscore >= 0.1 and topCVEscore <=  3.9:
+		severity = 'Low'
+		severityNum = 1
+	elif topCVEscore >= 4.0 and topCVEscore <=  6.9:
+		severity = 'Medium'
+		severityNum = 2
+	elif topCVEscore >= 7.0 and topCVEscore <=  8.9:
+		severity = 'High'
+		severityNum = 3
+	elif topCVEscore >= 9.0 and topCVEscore <=  10:
+		severity = 'Critical'
+		severityNum = 4
+
+	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "MSMods":countMSMod, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "OS":OS}
 	hostObjects.append(thisHost)
-	f.write("Host statistics: {0}\n".format(thisHost))
+
+for sys in hostObjects:
+	print(sys)
+	print("\n")
+
+print("NOW THEY ARE SORTED!!")
+hostObjects.sort(key = lambda l: (l["SeverityNum"], l["Criticals"], l["Highs"], l["Mediums"], l["Lows"], l["Nones"]), reverse = True)
+for sys in hostObjects:
+	print(sys)
+	print("\n")
+
+	# f.write("Host statistics: {0}\n".format(thisHost))
 
 """
 nc['10.0.0.42']['tcp'][80]['script']['vulners']
