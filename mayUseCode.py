@@ -53,3 +53,30 @@ for host in nm.all_hosts():
 	thisHost = {"IP":host,"CVEScore":hostCVEScore, "CVECount":cveCount}
 	hostObjects.append(thisHost)
 	f.write("Host statistics: {0}\n".format(thisHost))
+
+
+
+
+"""
+nc['10.0.0.42']['tcp'][80]['script']['vulners']
+print(nm['192.168.1.1']['addresses']['mac'])
+## gets OS possibilities (a list of dictionaries) ##
+##### it looks like the first dictionary returned has the highest #####
+##### 'accuracy' value however example I ran the first one was wrong... #####
+nm['10.0.0.42']['osmatch']
+## prints all details for a particular OS name including accuracy etc
+next(item for item in nm['10.0.0.42']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
+## prints value associated with key (here its 'name') for a paricular OS name
+next(item['name'] for item in nm['10.0.0.42']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
+# get all open ports
+nm['10.0.0.42']['tcp'].keys()
+# save and then print all services on different lines
+services = [nm['10.0.0.42']['tcp'][item]['name'] for item in nm['10.0.0.42']['tcp'].keys()]
+print('\n'.join(map(str, services)))
+# get service running on port
+nm['10.0.0.42']['tcp'][135]['name']
+# get version of service of applicable
+nm['10.0.0.42']['tcp'][135]['product'] + nm['10.0.0.42']['tcp'][135]['version']
+# prints all services
+print([nm['10.0.0.42']['tcp'][item]['name'] for item in nm['10.0.0.42']['tcp'].keys()])
+"""

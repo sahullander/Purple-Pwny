@@ -34,7 +34,7 @@ f.write('Begin Script @ {0} \n\n'.format(startTime))
 f.write('------ Your Host ------\n')
 f.write('Host IP: {0} \n'.format(IP))
 
-# Cross Platform way to get the following info but uses 2 imports
+# Cross Platform way to get the following info
 for i in netifaces.interfaces():
    try:
       if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("192") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("10") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("172"):
@@ -51,7 +51,6 @@ for i in netifaces.interfaces():
 # Creates an ipaddress object that is used to hold all of the IPs on the subnet
 subnet = ipaddress.ip_network(u'{0}/{1}'.format(IP, netmask),strict=False)
 
-print(subnet)
 # Just a prompt for the output file
 f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subnet[-1]))
 
@@ -81,8 +80,6 @@ for host in nm.all_hosts():
 	countMSMod = 0 # total number of Metasploit Modules found
 	countNoCVEports = 0 # used to determine when to print "No CVEs for this host." (ie when no servies found or no CVEs found)
 
-	# We can print all of this later after the objects are sorted
-	# f.write("\n\nResults for IP: {0}\n".format(host))
 	try:
 		OS = nm[host]['osmatch'][0]['name']
 	except:
@@ -158,11 +155,7 @@ for host in nm.all_hosts():
 	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "MSMods":countMSMod, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "OS":OS}
 	hostObjects.append(thisHost)
 f3.close()
-for sys in hostObjects:
-	print(sys)
-	print("\n")
 
-print("NOW THEY ARE SORTED!!")
 hostObjects.sort(key = lambda l: (l["SeverityNum"], l["Criticals"], l["Highs"], l["Mediums"], l["Lows"], l["Nones"]), reverse = True)
 printed4 = False
 printed3 = False
@@ -215,30 +208,6 @@ for sys in hostObjects:
 			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
 		else:
 			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"]))
-
-"""
-nc['10.0.0.42']['tcp'][80]['script']['vulners']
-print(nm['192.168.1.1']['addresses']['mac'])
-## gets OS possibilities (a list of dictionaries) ##
-##### it looks like the first dictionary returned has the highest #####
-##### 'accuracy' value however example I ran the first one was wrong... #####
-nm['10.0.0.42']['osmatch']
-## prints all details for a particular OS name including accuracy etc
-next(item for item in nm['10.0.0.42']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
-## prints value associated with key (here its 'name') for a paricular OS name
-next(item['name'] for item in nm['10.0.0.42']['osmatch'] if item['name'] == 'Microsoft Windows 10 1607')
-# get all open ports
-nm['10.0.0.42']['tcp'].keys()
-# save and then print all services on different lines
-services = [nm['10.0.0.42']['tcp'][item]['name'] for item in nm['10.0.0.42']['tcp'].keys()]
-print('\n'.join(map(str, services)))
-# get service running on port
-nm['10.0.0.42']['tcp'][135]['name']
-# get version of service of applicable
-nm['10.0.0.42']['tcp'][135]['product'] + nm['10.0.0.42']['tcp'][135]['version']
-# prints all services
-print([nm['10.0.0.42']['tcp'][item]['name'] for item in nm['10.0.0.42']['tcp'].keys()])
-"""
 
 endTime = datetime.now()
 runtime = endTime-startTime
