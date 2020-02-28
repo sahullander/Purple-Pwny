@@ -56,10 +56,7 @@ print(subnet)
 f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subnet[-1]))
 
 ######## NMAP STUFF ########
-try:
-	nm.scan(hosts=str(subnet), arguments='-O -sV --script vulners')
-except:
-	print("Something is broke ...")
+nm.scan(hosts=str(subnet), arguments='-O -sV --script vulners')
 
 hostsCount = len(nm.all_hosts())
 hostObjects = []
@@ -67,6 +64,10 @@ f.write("Count of alive hosts: {0}\n".format(hostsCount))
 f2 = open("IPList.txt","a+")
 f2.write('\n'.join(map(str,nm.all_hosts())))
 f2.close()
+
+f3 = open("serviceDetails.txt","a+")
+f4 = open("cveDetails.txt","a+")
+
 for host in nm.all_hosts():
 	cveCount = 0 # get len(tabs) / 3 for each port and add to cveCount
 	topCVEscore = -1 # Highest CVE score for the system used to determine severity level
@@ -78,6 +79,7 @@ for host in nm.all_hosts():
 	countLow = 0 # total number of CVEs that fall in that severity level
 	countNone = 0 # total number of CVEs that fall in that severity level
 	countMSMod = 0 # total number of Metasploit Modules found
+	countNoCVEports = 0 # used to determine when to print "No CVEs for this host." (ie when no servies found or no CVEs found)
 
 	# We can print all of this later after the objects are sorted
 	# f.write("\n\nResults for IP: {0}\n".format(host))
@@ -85,13 +87,13 @@ for host in nm.all_hosts():
 		OS = nm[host]['osmatch'][0]['name']
 	except:
 		 OS = 'No OS Found'
+	f3.write("\nIP: {0}".format(host))
+	f4.write("IP: {0}\n\t".format(host))
 	try:
-		# print later
-		# f.write("Port    Service                  Details \n")
+		f3.write("\nPort    Service                  Details")
 		for port in nm[host]['tcp'].keys():
-			# print later
-			# service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
-			# f.write(service + '\n')
+			service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
+			f3.write('\n\t' + service)
 			try:
 				tabs = []
 				cveScoreList = []
@@ -119,10 +121,20 @@ for host in nm.all_hosts():
 					elif currentCVEscore >= 9.0 and currentCVEscore <=  10:
 						countCritical += 1
 
+				### Use this if you want to print CVE details for each service ###
+				try:
+					f4.write(nm[host]['tcp'][port]['script']['vulners'] + '\n')
+				except:
+					pass
 			except:
-				pass
+				countNoCVEports += 1
+				if countNoCVEports == len(nm[host]['tcp'].keys()):
+					f4.write("No CVEs for this host.\n")
+				else:
+					pass
 	except:
-		pass
+		f3.write("\n\tNo Services for this host.\n")
+		f4.write("No CVEs for this host.\n")
 
 	if topCVEscore == -1:
 		severity = 'Inconclusive'
@@ -145,7 +157,7 @@ for host in nm.all_hosts():
 
 	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "MSMods":countMSMod, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "OS":OS}
 	hostObjects.append(thisHost)
-
+f3.close()
 for sys in hostObjects:
 	print(sys)
 	print("\n")

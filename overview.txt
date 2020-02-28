@@ -1,4 +1,4 @@
-Begin Script @ 2020-02-27 16:09:38.089655 
+Begin Script @ 2020-02-28 00:24:27.331394 
 
 ------ Your Host ------
 Host IP: 10.0.0.6 
@@ -38,4 +38,4 @@ Count of alive hosts: 3
 		Total CVEs: 0
 
 
- End Script @ 2020-02-27 16:10:48.399193    ---   Total Runtime: 0:01:10.309538
+ End Script @ 2020-02-28 00:25:38.011310    ---   Total Runtime: 0:01:10.679916
