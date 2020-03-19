@@ -1,4 +1,4 @@
-Begin Script @ 2020-02-28 00:24:27.331394 
+Begin Script @ 2020-03-18 20:40:28.652966 
 
 ------ Your Host ------
 Host IP: 10.0.0.6 
@@ -7,7 +7,7 @@ Network Mask: 255.255.255.0
 Gateway IP: 10.0.0.15 
 
 Initiating quick scan from host 10.0.0.0 to 10.0.0.255 
-Count of alive hosts: 3
+Count of alive hosts: 2
 
 --- Vulnerability Level: Critical ---
 	IP: 10.0.0.42 - Linux 2.6.9 - 2.6.33
@@ -28,14 +28,6 @@ Count of alive hosts: 3
 		Low CVEs: 0
 		None CVEs: 0
 		Total CVEs: 0
-	IP: 10.0.0.6 - No OS Found
-		Severity: Inconclusive (-1)
-		Critical CVEs: 0
-		High CVEs: 0
-		Medium CVEs: 0
-		Low CVEs: 0
-		None CVEs: 0
-		Total CVEs: 0
 
 
- End Script @ 2020-02-28 00:25:38.011310    ---   Total Runtime: 0:01:10.679916
+ End Script @ 2020-03-18 20:41:33.603967    ---   Total Runtime: 0:01:04.951001

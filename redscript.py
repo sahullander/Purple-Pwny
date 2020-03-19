@@ -54,8 +54,8 @@ subnet = ipaddress.ip_network(u'{0}/{1}'.format(IP, netmask),strict=False)
 # Just a prompt for the output file
 f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subnet[-1]))
 
-######## NMAP STUFF ########
-nm.scan(hosts=str(subnet), arguments='-O -sV --script vulners')
+# NMAP subnet excluding our IP #
+nm.scan(hosts=str(subnet), arguments='-O -sV --script vulners --exclude ' + IP)
 
 hostsCount = len(nm.all_hosts())
 hostObjects = []
@@ -85,11 +85,16 @@ for host in nm.all_hosts():
 	except:
 		 OS = 'No OS Found'
 	f3.write("\nIP: {0}".format(host))
-	f4.write("IP: {0}\n\t".format(host))
+	f4.write("IP: {0}\n".format(host))
 	try:
 		f3.write("\nPort    Service                  Details")
 		for port in nm[host]['tcp'].keys():
 			service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
+			try:
+				nm[host]['tcp'][port]['script']['vulners']
+				f4.write("  Port: " + str(port))
+			except:
+				pass
 			f3.write('\n\t' + service)
 			try:
 				tabs = []
@@ -120,13 +125,13 @@ for host in nm.all_hosts():
 
 				### Use this if you want to print CVE details for each service ###
 				try:
-					f4.write(nm[host]['tcp'][port]['script']['vulners'] + '\n')
+					f4.write('        ' + nm[host]['tcp'][port]['script']['vulners'] + '\n\n')
 				except:
 					pass
 			except:
 				countNoCVEports += 1
 				if countNoCVEports == len(nm[host]['tcp'].keys()):
-					f4.write("No CVEs for this host.\n")
+					f4.write("  No CVEs for this host.\n\n")
 				else:
 					pass
 	except:

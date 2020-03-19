@@ -28,6 +28,3 @@ Port    Service                  Details
 	6667    irc                      UnrealIRCd 
 	8009    ajp13                    Apache Jserv 
 	8180    http                     Apache Tomcat/Coyote JSP engine 1.1
-IP: 10.0.0.6
-Port    Service                  Details
-	No Services for this host.

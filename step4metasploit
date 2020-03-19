@@ -1,0 +1,11 @@
+pip3 install pymetasploit3
+
+msfrpcd -P testpassword
+
+## in python ##
+from pymetasploit3.msfrpc import *
+client = MsfRpcClient('testpassword')
+
+
+if(client.modules.use('exploit', exploit).rank is "excellent"):
+    print(exploit + "  " + client.modules.use('exploit', exploit).rank)

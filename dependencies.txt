@@ -1,3 +1,0 @@
-nmap for python - sudo apt-get install python3-nmap
-
-netifaces for python - sudo apt-get install python3-netifaces

@@ -1,3 +1,12 @@
+### msmodules stuff ###
+for exploit in client.modules.exploits:
+	if(client.modules.use('exploit', exploit).rank is "excellent"):
+		print(exploit + "  " + client.modules.use('exploit', exploit).rank)
+
+
+
+
+
 ##-------- Use this code for setting cve score = weighted avg of all services weighted averages --------##
 for host in nm.all_hosts():
 	cveCount = 0 # get len(tabs) / 3 for each port and add to cveCount

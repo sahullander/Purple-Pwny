@@ -1,7 +1,8 @@
 IP: 10.0.0.15
-	No CVEs for this host.
+  No CVEs for this host.
+
 IP: 10.0.0.42
-	
+  Port: 22        
   cpe:/a:openbsd:openssh:4.7p1: 
     	CVE-2010-4478	7.5	https://vulners.com/cve/CVE-2010-4478
     	CVE-2017-15906	5.0	https://vulners.com/cve/CVE-2017-15906
@@ -9,6 +10,7 @@ IP: 10.0.0.42
     	CVE-2010-4755	4.0	https://vulners.com/cve/CVE-2010-4755
     	CVE-2008-5161	2.6	https://vulners.com/cve/CVE-2008-5161
 
+  Port: 53        
   cpe:/a:isc:bind:9.4.2: 
     	CVE-2012-1667	8.5	https://vulners.com/cve/CVE-2012-1667
     	CVE-2014-8500	7.8	https://vulners.com/cve/CVE-2014-8500
@@ -45,6 +47,7 @@ IP: 10.0.0.42
     	CVE-2010-0290	4.0	https://vulners.com/cve/CVE-2010-0290
     	CVE-2009-4022	2.6	https://vulners.com/cve/CVE-2009-4022
 
+  Port: 80        
   cpe:/a:apache:http_server:2.2.8: 
     	CVE-2010-0425	10.0	https://vulners.com/cve/CVE-2010-0425
     	CVE-2011-3192	7.8	https://vulners.com/cve/CVE-2011-3192
@@ -82,6 +85,7 @@ IP: 10.0.0.42
     	CVE-2012-2687	2.6	https://vulners.com/cve/CVE-2012-2687
     	CVE-2011-4415	1.2	https://vulners.com/cve/CVE-2011-4415
 
+  Port: 2121        
   cpe:/a:proftpd:proftpd:1.3.1: 
     	CVE-2011-4130	9.0	https://vulners.com/cve/CVE-2011-4130
     	CVE-2010-3867	7.1	https://vulners.com/cve/CVE-2010-3867
@@ -94,9 +98,11 @@ IP: 10.0.0.42
     	CVE-2008-7265	4.0	https://vulners.com/cve/CVE-2008-7265
     	CVE-2012-6095	1.2	https://vulners.com/cve/CVE-2012-6095
 
+  Port: 3306        
   MySQL 5.0.51a-3ubuntu5: 
     	NODEJS:602	0.0	https://vulners.com/nodejs/NODEJS:602
 
+  Port: 5432        
   cpe:/a:postgresql:postgresql:8.3: 
     	CVE-2016-7048	9.3	https://vulners.com/cve/CVE-2016-7048
     	CVE-2019-10211	7.5	https://vulners.com/cve/CVE-2019-10211
@@ -112,5 +118,4 @@ IP: 10.0.0.42
     	CVE-2014-8161	4.0	https://vulners.com/cve/CVE-2014-8161
     	CVE-2010-0733	3.5	https://vulners.com/cve/CVE-2010-0733
     	CVE-2019-10210	1.9	https://vulners.com/cve/CVE-2019-10210
-IP: 10.0.0.6
-	No CVEs for this host.
+
