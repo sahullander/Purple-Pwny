@@ -55,7 +55,8 @@ subnet = ipaddress.ip_network(u'{0}/{1}'.format(IP, netmask),strict=False)
 f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subnet[-1]))
 
 # NMAP subnet excluding our IP #
-nm.scan(hosts=str(subnet), arguments='-O -sV --script vulners --exclude ' + IP)
+## make -Pn, -F, and speed (-T#) switch for during the run
+nm.scan(hosts=str(subnet), arguments='-O -sV -Pn --script vulners --exclude ' + IP)
 
 hostsCount = len(nm.all_hosts())
 hostObjects = []
@@ -90,6 +91,7 @@ for host in nm.all_hosts():
 		f3.write("\nPort    Service                  Details")
 		for port in nm[host]['tcp'].keys():
 			service = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
+
 			try:
 				nm[host]['tcp'][port]['script']['vulners']
 				f4.write("  Port: " + str(port))
