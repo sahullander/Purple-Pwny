@@ -1,7 +1,6 @@
 import os
 import time
 from pymetasploit3.msfrpc import *
-import nmap
 
 # start msf remote api
 os.system("msfrpcd -P testpw -S")
@@ -9,27 +8,14 @@ time.sleep(5) # pause for the service to fully start
 client = MsfRpcClient('testpw', port=55553, ssl=False) # make connection
 
 cid = client.consoles.console().cid # create console and get Id
-client.consoles.console(cid).write('search vsftpd 2.3.4') # write as if in msf console
-client.consoles.console(cid).read() # read results from writing to console
+client.consoles.console(cid).write('workspace') # write as if in msf console
+print(client.consoles.console(cid).read()) # read results from writing to console
 
-nm = nmap.PortScanner()
-
-nm.scan(hosts="10.0.0.42", arguments='-p 21 -sV')
-
-def findModules(service, details):
-    search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + service + '.csv'
-    print(search)
-    try:
-        client.consoles.console(cid).write(search)
-        time.sleep(5)
-    except:
-        pass
-    print("Check output now :)")
-
-for host in nm.all_hosts():
-    for port in nm[host]['tcp'].keys():
-        service = str(nm[host]['tcp'][port]['name'])
-        details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
-        findModules(service, details)
 # close msfrpcd
 os.system("killall ruby")
+
+
+
+
+if(client.modules.use('exploit', exploit).rank is "excellent"):
+    print(exploit + "  " + client.modules.use('exploit', exploit).rank)

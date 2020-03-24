@@ -16,30 +16,21 @@ cid = client.consoles.console().cid # create console and get Id
 
 nm = nmap.PortScanner()
 
-nm.scan(hosts="10.0.0.1/24", arguments='-p 53,80 -sV --exclude 10.0.0.6')
+nm.scan(hosts="10.0.0.1/24", arguments='-O -sV -T4 -Pn --script vulners --exclude 10.0.0.6')
 
 # '/' is not platform independant and neither is 'cd' #
-def findModules(service, details):
+def findModules(service, details, files, port):
     hostDir = 'cd ' + startDir[1:] + '/' + host
-    outFile = service + '.csv'
+    outFile = service + str(port) + '.csv'
     client.consoles.console(cid).write('cd /')
-    print("MSF at HOME")
-    time.sleep(5)
-    client.consoles.console(cid).write('pwd')
     time.sleep(5)
     client.consoles.console(cid).write(hostDir) # switch into host dir if not already
-    print("MSF at " + host + " dir")
-    time.sleep(5)
-    client.consoles.console(cid).write('pwd')
     time.sleep(5)
     search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
     try:
         client.consoles.console(cid).write(search)
         time.sleep(5)
-        print("search complete")
-        time.sleep(5)
         files.append(outFile)
-        print(file + " appended")
     except:
         pass
 
@@ -51,18 +42,17 @@ for host in nm.all_hosts():
     for port in nm[host]['tcp'].keys():
         service = str(nm[host]['tcp'][port]['name'])
         details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
-        findModules(service, details)
+        findModules(service, details, files, port)
 
-    print("Files for host: " + host)
-    try:
-        for file in files:
-            print("checking " + file + " for host " + host)
-            filePath = host + "/" + file
-            print("file path is " + filepath)
-            df1 = pd.read_csv(filePath , skipinitialspace=True, usecols=fields)
+
+    for file in files:
+        filePath = host + "/" + file
+        try:
+            df1 = pd.read_csv(filePath, skipinitialspace=True, usecols=fields)
             df = df.append(df1, ignore_index=True)
-    except:
-        print("POOOOOPY")
+        except:
+            pass
+
 
     print("Exploits for host: " + host + "\n")
     print(df.head(20))
