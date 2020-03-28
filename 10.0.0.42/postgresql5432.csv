@@ -1,5 +1,0 @@
-#,Name,Disclosure Date,Rank,Check,Description
-"119","exploit/linux/postgres/postgres_payload","2007-06-05","excellent","Yes","PostgreSQL for Linux Payload Execution"
-"283","exploit/multi/postgres/postgres_copy_from_program_cmd_exec","2019-03-20","excellent","Yes","PostgreSQL COPY FROM PROGRAM Command Execution"
-"284","exploit/multi/postgres/postgres_createlang","2016-01-01","good","Yes","PostgreSQL CREATE LANGUAGE Execution"
-"702","exploit/windows/postgres/postgres_payload","2009-04-10","excellent","Yes","PostgreSQL for Microsoft Windows Payload Execution"
