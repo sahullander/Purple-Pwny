@@ -64,7 +64,7 @@ f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subn
 
 # NMAP subnet excluding our IP #
 ## make -Pn, -F, and speed (-T#) switch for during the run
-nm.scan(hosts='10.0.0.42', arguments='-O -sV -T4 -Pn --script vulners --exclude ' + IP)
+nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -Pn --script vulners --exclude ' + IP)
 
 hostsCount = len(nm.all_hosts())
 hostObjects = []
