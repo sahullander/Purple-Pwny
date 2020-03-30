@@ -17,7 +17,7 @@ console = client.consoles.console(cid)
 
 nm = nmap.PortScanner()
 
-nm.scan(hosts="10.0.0.42", arguments='-O -sV -T4 -Pn --script vulners --exclude 10.0.0.6')
+nm.scan(hosts='10.0.0.42,10.0.0.15', arguments='-O -sV -T4 -Pn --script vulners --exclude 10.0.0.6')
 
 # '/' is not platform independant and neither is 'cd' #
 def findModules(service, details, port):
@@ -42,7 +42,6 @@ def findModules(service, details, port):
 
 for host in nm.all_hosts():
     exploitObjects = []
-    print(len(nm[host]['tcp'].keys()))
     os.system('cd / && cd ' + startDir[1:] + ' && mkdir ' + host)
     for port in nm[host]['tcp'].keys():
         service = str(nm[host]['tcp'][port]['name'])
@@ -53,6 +52,7 @@ for host in nm.all_hosts():
             df = pd.read_csv(filePath, skipinitialspace=True, usecols=['Name'])
         except:
             print("No results")
+            break
         dfLen = len(df)
         # countMSMod = countMSMod + dfLen
         if dfLen > 0:
