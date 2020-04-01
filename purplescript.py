@@ -15,7 +15,7 @@ import pandas as pd
 import csv
 
 startTime = datetime.now()
-
+# save the cwd for use later
 startDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 
@@ -41,7 +41,7 @@ f.write('Begin Script @ {0} \n\n'.format(startTime))
 f.write('------ Your Host ------\n')
 f.write('Host IP: {0} \n'.format(IP))
 
-# Cross Platform way to get the following info
+# Cross Platform way to get the following info about our machine
 for i in netifaces.interfaces():
    try:
       if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("192") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("10") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("172"):
@@ -120,6 +120,7 @@ def exploitHost(host):
 	except Exception as e:
 		print(e)
 	for port in nm[host]['tcp'].keys():
+		dfLen = 0
 		service = str(nm[host]['tcp'][port]['name'])
 		details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
 		exploitFile = findModules(service, details, port, host)
@@ -127,15 +128,48 @@ def exploitHost(host):
 			print("  no file returned from called method")
 		else:
 			filePath = f"{startDir}/{hostDir}/{exploitFile}"
-			try:
+			try: # checking to make sure we can read and write to file. Pandas randomly cant find files and maybe access lock is why?
 				while os.access(filePath, os.R_OK) == "False" or os.access(filePath, os.W_OK) == "False":
-					print("Cant be read/write yet waiting...")
+					print("   Hmmm file may be locked. Re-trying...")
 					time.sleep(1)
+				# initial read of file
 				df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
 				dfLen = len(df.index)
+				if dfLen == 0: # if the file was read but says no modules
+					if os.stat(filePath).st_size > 46: # files with modules should be > 46 so we shoudlnt be having problems... PANDAS
+						print("  ****** why is df size 0! *******")
+						time.sleep(1)
+						df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try one more time
+						dfLen = len(df.index) # should be greater than 0 - modules will run after above print is made if this worked
+					else: # file was read, dfLen is 0, and file size is small so probably correct
+						dfLen = 0
 			except Exception as e:
-				print(e)
-				dfLen = 0
+				if "does not exist" in str(e):
+					# lets make sure it actually doesnt exist and not just a pandas issue..
+					count = 0
+					while count < 3:
+						try:
+							print("  File was not found. Secondary attempt (" + str(count+1) + "/3)")
+							df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
+							dfLen = len(df.index)
+							if dfLen == 0: # pandas found the file, now but says no modules so lets test it
+								if os.stat(filePath).st_size > 46: # size should be > 46 if contains any modules so try pandas read again
+									print("  ****** why is df size 0! (second) *******")
+									time.sleep(2)
+									df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try pandas read again
+									dfLen = len(df.index) # should be > 0 - modules will run after aove print is made if this worked
+								else:
+									print("  file size: " + str(os.stat(filePath).st_size)) # file has no modules
+									dfLen = 0
+									count = 4
+							count = 6 # exit the "getting a file not found" loop becasue it was found. The file may or may not have data though
+						except:
+							count += 1 # this will try 3 times if pandas keeps saying file does not exist
+					if count == 3: # got 3 file not founds so giving up
+						print("  MSF file could not be found by pandas.")
+						dfLen = 0
+				else: # some other error occured
+					dfLen = 0
 
 			if dfLen > 0:
 				countMSMod = countMSMod + dfLen
@@ -181,8 +215,6 @@ def exploitHost(host):
 					else:
 						print("  No payload selected for: " + exploitName)
 			else:
-				print(filePath)
-				print(df)
 				print("  No modules found") # No modules found for this service / port
 
 
