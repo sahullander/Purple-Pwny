@@ -1,0 +1,8 @@
+#,Name,Disclosure Date,Rank,Check,Description
+"0","exploit/linux/http/asuswrt_lan_rce","2018-01-22","excellent","No","AsusWRT LAN Unauthenticated Remote Code Execution"
+"1","exploit/linux/http/dlink_diagnostic_exec_noauth","2013-03-05","excellent","No","D-Link DIR-645 / DIR-815 diagnostic.php Command Execution"
+"2","exploit/linux/http/dlink_dir300_exec_telnet","2013-04-22","excellent","No","D-Link Devices Unauthenticated Remote Command Execution"
+"3","exploit/linux/http/huawei_hg532n_cmdinject","2017-04-15","excellent","Yes","Huawei HG532n Command Injection"
+"4","exploit/linux/http/tp_link_sc2020n_authenticated_telnet_injection","2015-12-20","excellent","No","TP-Link SC2020n Authenticated Telnet Injection"
+"5","exploit/linux/misc/asus_infosvr_auth_bypass_exec","2015-01-04","excellent","No","ASUS infosvr Auth Bypass Command Execution"
+"6","exploit/linux/telnet/netgear_telnetenable","2009-10-30","excellent","Yes","NETGEAR TelnetEnable"

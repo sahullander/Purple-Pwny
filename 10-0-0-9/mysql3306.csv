@@ -1,0 +1,7 @@
+#,Name,Disclosure Date,Rank,Check,Description
+"1","exploit/linux/mysql/mysql_yassl_getname","2010-01-25","good","No","MySQL yaSSL CertDecoder::GetName Buffer Overflow"
+"2","exploit/linux/mysql/mysql_yassl_hello","2008-01-04","good","No","MySQL yaSSL SSL Hello Message Buffer Overflow"
+"6","exploit/multi/mysql/mysql_udf_payload","2009-01-16","excellent","No","Oracle MySQL UDF Payload Execution"
+"7","exploit/windows/mysql/mysql_mof","2012-12-01","excellent","Yes","Oracle MySQL for Microsoft Windows MOF Execution"
+"8","exploit/windows/mysql/mysql_start_up","2012-12-01","excellent","Yes","Oracle MySQL for Microsoft Windows FILE Privilege Abuse"
+"9","exploit/windows/mysql/scrutinizer_upload_exec","2012-07-27","excellent","Yes","Plixer Scrutinizer NetFlow and sFlow Analyzer 9 Default MySQL Credential"
