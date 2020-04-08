@@ -1,4 +1,4 @@
-Begin Script @ 2020-04-07 15:49:19.598015 
+Begin Script @ 2020-04-07 23:47:41.900440 
 
 ------ Your Host ------
 Host IP: 10.0.0.6 
@@ -7,33 +7,46 @@ Network Mask: 255.255.255.0
 Gateway IP: 10.0.0.15 
 
 Initiating quick scan from host 10.0.0.0 to 10.0.0.255 
-Count of alive hosts: 3
+Count of alive hosts: 5
 
 --- Vulnerability Level: Critical ---
-	IP: 10.0.0.10 - Linux 2.6.9 - 2.6.33
+	IP: 10.0.0.7 - Linux 2.6.27 - 2.6.28
 		Severity: Critical (4)
 		Critical CVEs: 24
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 1
+		Total CVEs: 25.0
+		Services Found: 6
+		Services with MS Modules: 3
+		Services Exploited: 1
+
+--- Vulnerability Level: High ---
+	IP: 10.0.0.9 - Linux 2.6.8 - 2.6.30
+		Severity: High (3)
+		Critical CVEs: 0
 		High CVEs: 39
 		Medium CVEs: 0
 		Low CVEs: 35
-		None CVEs: 1
-		Total CVEs: 99.0
-		Services Found: 23
-		Services with MS Modules: 10
-		Services Exploited: 2
-	IP: 10.0.0.9 - Linux 2.6.9 - 2.6.33
-		Severity: Critical (4)
-		Critical CVEs: 24
-		High CVEs: 39
-		Medium CVEs: 0
-		Low CVEs: 35
-		None CVEs: 1
-		Total CVEs: 99.0
-		Services Found: 23
-		Services with MS Modules: 9
-		Services Exploited: 3
+		None CVEs: 0
+		Total CVEs: 74.0
+		Services Found: 6
+		Services with MS Modules: 4
+		Services Exploited: 0
 
 --- Vulnerability Level: Inconclusive ---
+	IP: 10.0.0.10 - Linux 2.6.27 - 2.6.28
+		Severity: Inconclusive (-1)
+		Critical CVEs: 0
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 0
+		Services Found: 6
+		Services with MS Modules: 1
+		Services Exploited: 0
 	IP: 10.0.0.15 - No OS Found
 		Severity: Inconclusive (-1)
 		Critical CVEs: 0
@@ -45,6 +58,17 @@ Count of alive hosts: 3
 		Services Found: 2
 		Services with MS Modules: 0
 		Services Exploited: 0
+	IP: 10.0.0.8 - Linux 2.6.27 - 2.6.28
+		Severity: Inconclusive (-1)
+		Critical CVEs: 0
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 0
+		Services Found: 5
+		Services with MS Modules: 2
+		Services Exploited: 0
 
 
- End Script @ 2020-04-07 16:10:24.110537    ---   Total Runtime: 0:21:04.512522
+ End Script @ 2020-04-08 00:02:03.219991    ---   Total Runtime: 0:14:21.319551
