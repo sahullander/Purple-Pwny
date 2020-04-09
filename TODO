@@ -1,6 +1,4 @@
-1)  Implement a bruteforce on common ports if exploitation using modules was not successful
-2)  Allow user to pass parameters (payloads to try, times to wait, exploit rank, criticality of system, exploit rank etc.)
-3)  Solidify the "search" in metasploit if possible
-4)  find window xp box?
-5)  Comment code
-6)  Move things to functions (time permitting)
+1)  Allow user to pass parameters (payloads to try, times to wait, exploit rank, criticality of system, exploit rank etc.)
+2)  find window xp box?
+3)  Comment code
+4)  Move things to functions (time permitting)

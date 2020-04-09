@@ -1,0 +1,4 @@
+msfadmin
+user
+root
+toor
