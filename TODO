@@ -1,4 +1,5 @@
-1)  Allow user to pass parameters (payloads to try, times to wait, exploit rank, criticality of system, exploit rank etc.)
-2)  find window xp box?
-3)  Comment code
+1)  find window xp box?
+2)  try f'' strings instead for speed
+2)  Comment code
+3)  Allow user to pass parameters (payloads to try, times to wait, exploit rank, criticality of system, exploit rank etc.)
 4)  Move things to functions (time permitting)

