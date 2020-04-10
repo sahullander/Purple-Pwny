@@ -1,4 +1,4 @@
-Begin Script @ 2020-04-09 00:47:38.752113 
+Begin Script @ 2020-04-10 02:25:01.220717 
 
 ------ Your Host ------
 Host IP: 10.0.0.6 
@@ -10,18 +10,7 @@ Initiating quick scan from host 10.0.0.0 to 10.0.0.255
 Count of alive hosts: 5
 
 --- Vulnerability Level: Critical ---
-	IP: 10.0.0.9 - Linux 2.6.8 - 2.6.30
-		Severity: Critical (4)
-		Critical CVEs: 24
-		High CVEs: 39
-		Medium CVEs: 0
-		Low CVEs: 35
-		None CVEs: 1
-		Total CVEs: 99.0
-		Services Found: 29
-		Services with MS-Modules or BF-able: 13
-		Services Exploited: 8
-	IP: 10.0.0.7 - Linux 2.6.8 - 2.6.30
+	IP: 10.0.0.7 - Linux 2.6.27 - 2.6.28
 		Severity: Critical (4)
 		Critical CVEs: 24
 		High CVEs: 0
@@ -30,6 +19,19 @@ Count of alive hosts: 5
 		None CVEs: 1
 		Total CVEs: 25.0
 		Services Found: 6
+		Services with MS-Modules or BF-able: 3
+		Services Exploited: 1
+
+--- Vulnerability Level: High ---
+	IP: 10.0.0.8 - Linux 2.6.8 - 2.6.30
+		Severity: High (3)
+		Critical CVEs: 0
+		High CVEs: 5
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 5.0
+		Services Found: 5
 		Services with MS-Modules or BF-able: 3
 		Services Exploited: 1
 
@@ -45,6 +47,17 @@ Count of alive hosts: 5
 		Services Found: 7
 		Services with MS-Modules or BF-able: 2
 		Services Exploited: 1
+	IP: 10.0.0.14 - Microsoft Windows 7 Professional or Windows 8
+		Severity: Inconclusive (-1)
+		Critical CVEs: 0
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 0
+		Services Found: 2
+		Services with MS-Modules or BF-able: 2
+		Services Exploited: 0
 	IP: 10.0.0.15 - No OS Found
 		Severity: Inconclusive (-1)
 		Critical CVEs: 0
@@ -54,19 +67,8 @@ Count of alive hosts: 5
 		None CVEs: 0
 		Total CVEs: 0
 		Services Found: 2
-		Services with MS-Modules or BF-able: 0
-		Services Exploited: 0
-	IP: 10.0.0.8 - Linux 2.6.27 - 2.6.28
-		Severity: Inconclusive (-1)
-		Critical CVEs: 0
-		High CVEs: 0
-		Medium CVEs: 0
-		Low CVEs: 0
-		None CVEs: 0
-		Total CVEs: 0
-		Services Found: 5
-		Services with MS-Modules or BF-able: 2
+		Services with MS-Modules or BF-able: 1
 		Services Exploited: 0
 
 
- End Script @ 2020-04-09 01:09:18.872465    ---   Total Runtime: 0:21:40.120352
+ End Script @ 2020-04-10 02:47:25.656529    ---   Total Runtime: 0:22:24.435812

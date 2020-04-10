@@ -1,1 +1,2 @@
 #,Name,Disclosure Date,Rank,Check,Description
+"95","exploit/linux/http/nginx_chunked_size","2013-05-07","great","Yes","Nginx HTTP Server 1.3.9-1.4.0 Chunked Encoding Stack Buffer Overflow"

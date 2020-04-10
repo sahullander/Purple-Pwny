@@ -37,7 +37,7 @@ def banner():
 		print(spaces + " ' <' `\\ ._/'\\ ")
 		print(spaces + "    `   \\     \\ ")
 
-		time.sleep(1)
+		time.sleep(.5)
 		os.system('clear')
 		pwny += 1
 
@@ -150,7 +150,7 @@ def findModules(service, details, port, host):
     while console.is_busy() == True:
         time.sleep(1)
 	# what we want to search msfconsole for now that in right directory
-    search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:good -o ' + outFile
+    search = 'search ' + service + ' -S ' + details + ' type:exploit && rank:excellent || rank:great -o ' + outFile
     try:
         console.write(search) # actually perform the search for modules and store the output
         while console.is_busy() == True:
@@ -274,7 +274,7 @@ def exploitHost(host):
 					else:
 						print("  Session was found. Exiting modules for current service.")
 						break
-				# check that all modules (jobs) are complete
+				# check that all jobs are complete
 				sleepCount = 0
 				if len(client.jobs.list) > 0: # still have jobs running so wait a max of 30 secondds if not exploited before
 					while len(client.jobs.list) > 0 and sleepCount < 30 and serviceExploited == False:
@@ -358,7 +358,7 @@ for host in nm.all_hosts():
 	f3.write("\nIP: {0}".format(host))
 	f4.write("IP: {0}\n".format(host))
 	try:
-		f3.write("\nPort    Service                  Details")
+		f3.write("\n\tPort    Service                  Details")
 		for port in nm[host]['tcp'].keys():
 			services += 1
 			serviceFull = str(port).ljust(8," ") + nm[host]['tcp'][port]['name'].ljust(25, " ") + nm[host]['tcp'][port]['product'] + " " + nm[host]['tcp'][port]['version']
@@ -409,7 +409,8 @@ for host in nm.all_hosts():
 	except:
 		f3.write("\n\tNo Services for this host.\n")
 		f4.write("No CVEs for this host.\n")
-
+	f3.close()
+	f4.close()
 	if topCVEscore == -1:
 		severity = 'Inconclusive'
 		severityNum = -1
