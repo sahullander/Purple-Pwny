@@ -1,3 +1,0 @@
-ftp credentials for 10.0.0.10 on port 21
-msfadmin:msfadmin
-user:user

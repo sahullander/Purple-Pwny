@@ -1,2 +1,0 @@
-#,Name,Disclosure Date,Rank,Check,Description
-"452","exploit/openbsd/local/dynamic_loader_chpass_privesc","2019-12-11","excellent","Yes","OpenBSD Dynamic Loader chpass Privilege Escalation"

@@ -1,29 +1,4 @@
 
-IP: 10.0.0.10
-	Port    Service                  Details
-	21      ftp                      vsftpd 2.3.4
-	111     rpcbind                   2
-	139     netbios-ssn              Samba smbd 3.X - 4.X
-	445     netbios-ssn              Samba smbd 3.X - 4.X
-	512     exec                     netkit-rsh rexecd 
-	513     login                    OpenBSD or Solaris rlogind 
-	514     tcpwrapped                
-IP: 10.0.0.14
-	Port    Service                  Details
-	445     microsoft-ds             Microsoft Windows 7 - 10 microsoft-ds 
-	5357    http                     Microsoft HTTPAPI httpd 2.0
-IP: 10.0.0.15
-	Port    Service                  Details
-	53      domain                    
-	80      http                     nginx 
-IP: 10.0.0.7
-	Port    Service                  Details
-	1099    java-rmi                 GNU Classpath grmiregistry 
-	1524    bindshell                Metasploitable root shell 
-	2049    nfs                       2-4
-	2121    ftp                      ProFTPD 1.3.1
-	3306    mysql                    MySQL 5.0.51a-3ubuntu5
-	5432    postgresql               PostgreSQL DB 8.3.0 - 8.3.7
 IP: 10.0.0.8
 	Port    Service                  Details
 	22      ssh                      OpenSSH 4.7p1 Debian 8ubuntu1
