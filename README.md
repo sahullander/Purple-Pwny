@@ -51,6 +51,18 @@ Executing the python script is easy. Change into the directory where "purplepwny
    * Services with Ms-Modules or BF-able: #   `// Number of services that had atleast 1 exploit module returned by Metasploit or are listed as brute-forceable ports`
    * Services Exploited: #   `// Number of services exploited using Metasploit modules or bruteforce attacks.`
 
+Additionally, a folder is created for each host that is found and is named accordingly. For instance host with IP =  10.0.0.9 will have a folder named 10-0-0-9. Each of these host folders contain information regarding exploits for that host. Each service/port that is scanned will have its own .csv file named **servicePORT.csv**. Therefore if a host is running http on port 8080 and on port 80, 2 files will be genereated (http8080.csv and http80.csv). Because metasploit modules are found using the service and details about that service, the 2 example http .csv files may or may not contian the same data depending on the banner found on each port. An example (http80.csv) can been seen below:
+
+![github-small](https://imgur.com/0ZoAfs2.png)
+
+**exploits.csv** is another file that is created for each host. This file lists every exploit module/payload combination that was executed against that host. An example can be seen below.
+
+![github-small](https://imgur.com/vVI9Mhg.png)
+
+**bf-servicePORT.txt** is the last file that may be found in a host's folder. This file is only populated if a successful bruteforce attempt was made against a given service/port. The file shows the which host, service, and port was attacked and valid credentials that were found. See example (bf-ftp21.txt) below.
+
+![github-small](https://imgur.com/nmjPAhx.png)
+
   ## CVE Ranks
   A full explaination for CVSS v3.0 Ratings can be found here https://nvd.nist.gov/vuln-metrics/cvss. In summary CVE severity is given as follows:
 
@@ -61,7 +73,7 @@ Executing the python script is easy. Change into the directory where "purplepwny
     High        7.0 - 9.9
     Critical    9.0 - 10.0
 
-  In this script, a system's severity is the same severity as the highest CVE found. Therefor if a system has 1 critical and 35 high CVEs, then the system is listed as critical. The severity # for each host is a simple mapping where "None" = 0, ... , "Critical" = 4, and Inconclusive (no CVEs found) = -1. If two systems are the same severity, then the system with the higher count in that severity is deemed more vulnerable. In the case that these numbers are the same also, the number of CVEs at the next leading severity level are compared and so on. 
+  In this script, a system's severity is the same severity as the highest CVE found. Therefore if a system has 1 critical and 35 high CVEs, then the system is listed as critical. The severity # for each host is a simple mapping where "None" = 0, ... , "Critical" = 4, and Inconclusive (no CVEs found) = -1. If two systems are the same severity, then the system with the higher count in that severity is deemed more vulnerable. In the case that these numbers are the same also, the number of CVEs at the next leading severity level are compared and so on. 
 
   ## Recognition
   Special thanks to Gleahm and tukkrrr for mental support throughout this project, and allowing me to think through my script during our 4 hour long phone calls. Also thank you to my professor who supported my project and gave me ideas/feedback when needed.
