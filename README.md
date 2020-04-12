@@ -29,15 +29,23 @@ Executing the python script is easy. Change into the directory where "purplepwny
    
   #### IPList.txt
   This file simply list all IPv4 addresses of alive hosts on the network.
+  
+  ![github-small](https://imgur.com/GGcu9px.png)
     
   #### serviceDetails.txt
   This file provides a nmap-like output of services for each host. Information includes: host IPv4 address, ports, service name, service product, and service version.
+  
+  ![github-small](https://imgur.com/Iod7uCR.png)
     
   #### cveDetails.txt
   This file provides information regarding to each CVE found during the scan. Each host shows the port and associated CVEs for the service running on that port. CVE details include the CVE name, rank, and a link to read about the CVE.
+  
+ ![github-small](https://imgur.com/veYaWh7.png)
     
   #### overview.txt
   This is the main output file. It includes the options used in the most recent scan, the attacker's system/network details (IP, OS, network mask, and gateway IP), the host range that is scanned, and # of alive hosts found. The most important part comes after all this. The next section shows systems in order from most to least vulnerable based on CVEs (see next section for details). For each host the following information is given:
+ 
+  ![github-small](https://imgur.com/6eZZf3E.png)
     
    * IPv4 address - OS (or 'No OS Found')
    * Severity: Critical, High, Medium, Low, or None (Severity #)   `// Highest CVE rank of CVEs found for that host`
@@ -50,7 +58,7 @@ Executing the python script is easy. Change into the directory where "purplepwny
    * Services Found: #   `// Number of services running found by nmap`
    * Services with Ms-Modules or BF-able: #   `// Number of services that had atleast 1 exploit module returned by Metasploit or are listed as brute-forceable ports`
    * Services Exploited: #   `// Number of services exploited using Metasploit modules or bruteforce attacks.`
-
+  
 Additionally, a folder is created for each host that is found and is named accordingly. For instance host with IP =  10.0.0.9 will have a folder named 10-0-0-9. Each of these host folders contain information regarding exploits for that host. Each service/port that is scanned will have its own .csv file named **servicePORT.csv**. Therefore if a host is running http on port 8080 and on port 80, 2 files will be genereated (http8080.csv and http80.csv). Because metasploit modules are found using the service and details about that service, the 2 example http .csv files may or may not contian the same data depending on the banner found on each port. An example (http80.csv) can been seen below:
 
 ![github-small](https://imgur.com/0ZoAfs2.png)
