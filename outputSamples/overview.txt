@@ -1,0 +1,90 @@
+Begin Script @ 2020-04-12 00:34:53.310811 
+
+---- Script options ----
+--> Bruteforce user file: /home/non-root/Purple-Pwny/bruteforce/userList.txt
+--> Bruteforce password file: /home/non-root/Purple-Pwny/bruteforce/passList.txt
+--> Max payloads per exploit module: 5 
+
+------ Your Host ------
+Host IP: 10.0.0.6 
+Operating System: Linux 
+Network Mask: 255.255.255.0 
+Gateway IP: 10.0.0.15 
+
+Initiating service scan from host 10.0.0.0 to 10.0.0.255 
+Count of alive hosts: 6
+
+--- Vulnerability Level: Critical ---
+	IP: 10.0.0.9 - Linux 2.6.8 - 2.6.30
+		Severity: Critical (4)
+		Critical CVEs: 24
+		High CVEs: 39
+		Medium CVEs: 0
+		Low CVEs: 35
+		None CVEs: 1
+		Total CVEs: 99.0
+		Services Found: 30
+		Services with MS-Modules or BF-able: 13
+		Services Exploited: 13
+	IP: 10.0.0.7 - Linux 2.6.27 - 2.6.28
+		Severity: Critical (4)
+		Critical CVEs: 24
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 1
+		Total CVEs: 25.0
+		Services Found: 6
+		Services with MS-Modules or BF-able: 3
+		Services Exploited: 1
+
+--- Vulnerability Level: High ---
+	IP: 10.0.0.8 - Linux 2.6.27 - 2.6.28
+		Severity: High (3)
+		Critical CVEs: 0
+		High CVEs: 5
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 5.0
+		Services Found: 5
+		Services with MS-Modules or BF-able: 3
+		Services Exploited: 1
+
+--- Vulnerability Level: Inconclusive ---
+	IP: 10.0.0.10 - Linux 2.6.27 - 2.6.28
+		Severity: Inconclusive (-1)
+		Critical CVEs: 0
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 0
+		Services Found: 7
+		Services with MS-Modules or BF-able: 1
+		Services Exploited: 1
+	IP: 10.0.0.14 - Microsoft Windows Server 2008 or 2008 Beta 3
+		Severity: Inconclusive (-1)
+		Critical CVEs: 0
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 0
+		Services Found: 2
+		Services with MS-Modules or BF-able: 2
+		Services Exploited: 0
+	IP: 10.0.0.15 - No OS Found
+		Severity: Inconclusive (-1)
+		Critical CVEs: 0
+		High CVEs: 0
+		Medium CVEs: 0
+		Low CVEs: 0
+		None CVEs: 0
+		Total CVEs: 0
+		Services Found: 2
+		Services with MS-Modules or BF-able: 1
+		Services Exploited: 0
+
+
+ End Script @ 2020-04-12 01:01:11.304986    ---   Total Runtime: 0:26:17.994175

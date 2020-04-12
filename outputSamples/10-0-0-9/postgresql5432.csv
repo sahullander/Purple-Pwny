@@ -1,0 +1,4 @@
+#,Name,Disclosure Date,Rank,Check,Description
+"116","exploit/linux/postgres/postgres_payload","2007-06-05","excellent","Yes","PostgreSQL for Linux Payload Execution"
+"294","exploit/multi/postgres/postgres_copy_from_program_cmd_exec","2019-03-20","excellent","Yes","PostgreSQL COPY FROM PROGRAM Command Execution"
+"707","exploit/windows/postgres/postgres_payload","2009-04-10","excellent","Yes","PostgreSQL for Microsoft Windows Payload Execution"

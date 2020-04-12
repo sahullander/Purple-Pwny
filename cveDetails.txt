@@ -1,9 +1,0 @@
-IP: 10.0.0.8
-  Port: 22        
-  cpe:/a:openbsd:openssh:4.7p1: 
-    	CVE-2010-4478	7.5	https://vulners.com/cve/CVE-2010-4478
-    	CVE-2017-15906	5.0	https://vulners.com/cve/CVE-2017-15906
-    	CVE-2016-10708	5.0	https://vulners.com/cve/CVE-2016-10708
-    	CVE-2010-4755	4.0	https://vulners.com/cve/CVE-2010-4755
-    	CVE-2008-5161	2.6	https://vulners.com/cve/CVE-2008-5161
-
