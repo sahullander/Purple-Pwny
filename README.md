@@ -52,9 +52,14 @@ Executing the python script is easy. Change into the directory where "purplepwny
   A full explaination for CVSS v3.0 Ratings can be found here https://nvd.nist.gov/vuln-metrics/cvss. In summary CVE severity is given as follows:
     ```
     Severity    Score Range
+    
     None            0
+    
     Low         0.1 - 3.9
+    
     Medium      4.0 - 6.9
+    
     High        7.0 - 9.9
+    
     Critical    9.0 - 10.0
     ```
