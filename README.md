@@ -1,4 +1,4 @@
-# Purple-Pwnyt
+# Purple-Pwny
 
 ![PPP](https://imgur.com/Sh86dxd.png)
 
