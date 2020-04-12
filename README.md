@@ -58,3 +58,7 @@ Executing the python script is easy. Change into the directory where "purplepwny
     High        7.0 - 9.9
     Critical    9.0 - 10.0
 
+  In this script, a system's severity is the same severity as the highest CVE found. Therefor if a system has 1 critical and 35 high CVEs, then the system is listed as critical. The severity # for each host is a simple mapping where "None" = 0, ... , "Critical" = 4, and Inconclusive (no CVEs found) = -1. If two systems are the same severity, then the system with the higher count in that severity is deemed more vulnerable. In the case that these numbers are the same also, the number of CVEs at the next leading severity level are compared and so on. 
+
+  ## Recognition
+  Special thanks to Gleahm and tukkrrr for mental support throughout this project, and allowing me to think through my script during our 4 hour long phone calls. Also thank you to my professor who supported my project and gave me ideas/feedback when needed.
