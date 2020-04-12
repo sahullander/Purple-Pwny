@@ -15,17 +15,11 @@ The idea was to limit the number of external dependecies as much as possible, ho
 
 ## Executing the script
 Executing the python script is easy. Change into the directory where "purplepwny.py" exists (inside the Purple-Pwny folder if you used git to download the script). Then run `sudo python3 purplepwny.py -h` to see a list of available options detailed below.
-  ```
-  usage: test.py [-h] [--b B B] [--p P] 
+
+![github-small](https://imgur.com/Boa7d6H.png)
   
-  optional arguements:
-  -h, --help  show this help message and exit
-  --b B B     Specify filepaths for bruteforce users list [arg1] and passwords list [arg2].
-  --p P       Specify number of payloads per exploit module to try.
-  ```
-  
-  ## Example Output
-  There are 4 .txt output files: IPList.txt, serviceDetails.txt, cveDetails.txt, and overview.txt. Examples for each of these can be found in the "OutputSamples" folder
+## Example Output
+There are 4 .txt output files: IPList.txt, serviceDetails.txt, cveDetails.txt, and overview.txt. Examples for each of these can be found in the "OutputSamples" folder
    
   #### IPList.txt
   This file simply list all IPv4 addresses of alive hosts on the network.
@@ -71,8 +65,8 @@ Additionally, a folder is created for each host that is found and is named accor
 
 ![github-small](https://imgur.com/nmjPAhx.png)
 
-  ## CVE Ranks
-  A full explaination for CVSS v3.0 Ratings can be found here https://nvd.nist.gov/vuln-metrics/cvss. In summary CVE severity is given as follows:
+## CVE Ranks
+A full explaination for CVSS v3.0 Ratings can be found here https://nvd.nist.gov/vuln-metrics/cvss. In summary CVE severity is given as follows:
 
     Severity    Score Range
     None            0
@@ -83,5 +77,5 @@ Additionally, a folder is created for each host that is found and is named accor
 
   In this script, a system's severity is the same severity as the highest CVE found. Therefore if a system has 1 critical and 35 high CVEs, then the system is listed as critical. The severity # for each host is a simple mapping where "None" = 0, ... , "Critical" = 4, and Inconclusive (no CVEs found) = -1. If two systems are the same severity, then the system with the higher count in that severity is deemed more vulnerable. In the case that these numbers are the same also, the number of CVEs at the next leading severity level are compared and so on. 
 
-  ## Recognition
-  Special thanks to Gleahm and tukkrrr for mental support throughout this project, and allowing me to think through my script during our 4 hour long phone calls. Also thank you to my professor who supported my project and gave me ideas/feedback when needed.
+## Recognition
+Special thanks to Gleahm and tukkrrr for mental support throughout this project, and allowing me to think through my script during our 4 hour long phone calls. Also thank you to my professor who supported my project and gave me ideas/feedback when needed.
