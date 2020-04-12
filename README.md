@@ -10,7 +10,7 @@ The idea behind this script is simple: Rank hosts on a given subnet and attempt 
 ## Prerequisites
 The idea was to limit the number of external dependecies as much as possible, however a few non-standard libraries were used. Below is a simple guide that will allow you to install and test the script out. For the time-being, this script does not work in Windows enviroments. This is something that will be worked on as time goes on and demand calls for it.
   1. install python3
-  2. `sudo pip3 install python3-nmap, pymetasploit3, python3-netifaces, pandas`
+  2. `sudo pip3 install python-nmap, pymetasploit3, netifaces, pandas`
   3. `git clone https://github.com/sahullander/Purple-Pwny.git`
 
 ## Executing the script
