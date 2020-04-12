@@ -1,5 +1,8 @@
-# Purple-Pwny
-Automatted Purple Team Script
+# Purple-Pwnyt
+
+![PPP](https://imgur.com/Sh86dxd.png)
+
+Automated Purple Team Script
 
 ## Overview
 The idea behind this script is simple: Rank hosts on a given subnet and attempt to exploit them using Metasploit modules without the need of an operator. Simply put, a user with no penetration testing or vulnerability assessment experience can run this script and gain knowledge about weaknesses in the systems connected to the network. The ideal user is a red (offensive) team or blue (defensive) team member, hence the "purple" in "Purple-Pwny". "Pwn" in that name is a slang term for 'defeating' or 'to get the better of' something else, in this case another system. Pwn was morphed into Pwny for no reason other than "Purple-Pwn" just didn't seem fitting enough, and let's face it, all scripts needed a good mascot! 
