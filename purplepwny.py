@@ -381,7 +381,7 @@ def main(args):
 	# NMAP subnet excluding our IP #
 	## make -Pn, -F, and speed (-T#) switch for during the run
 	print("Nmap scan started. This may take a while...")
-	nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
+	nm.scan(hosts="10.0.0.9", arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
 	print("Nmap scan complete!")
 
 	hostsCount = len(nm.all_hosts())
@@ -577,4 +577,7 @@ if __name__ == "__main__":
     parser.add_argument("--p", type=int, default=5, help="Specify number of payloads per exploit module to try. (--p 2)")
     parser.add_argument("--r", type=str.lower, nargs='+', choices= ["excellent", "great", "good", "normal", "average", "low"], help="Specify rank of exploit modules. (--r excellent great)")
     args = parser.parse_args()
-    main(args)
+    try:
+    	main(args)
+    except KeyboardInterrupt:
+    	print("Shutting down due to keyboard interrupt.")
