@@ -299,7 +299,7 @@ def main(args):
 		exploitRanks = ["rank:excellent", " || ", "rank:great"]
 	exploitRanks = ''.join(map(str,exploitRanks))
 	if args.b:
-		if not os.path.exists(args.b[0] or args.b[1]):
+		if os.path.exists(args.b[0]) is False or os.path.exists(args.b[1]) is False:
 			print("One or both of the bruteforce files could not be found. Please enter a correct filepath or use the default path.")
 			sys.exit()
 		global userList, passList
@@ -360,7 +360,7 @@ def main(args):
 	# Cross Platform way to get the following info about our machine
 	for i in netifaces.interfaces():
 	   try:
-	      if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'] == IP: # .startswith("192") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("10") or netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'].startswith("172")
+	      if netifaces.ifaddresses(i)[netifaces.AF_INET][0]['addr'] == IP:
 	         f.write("Operating System: {0} \n".format(platform.system()))
 	         netmask = netifaces.ifaddresses(i)[netifaces.AF_INET][0]['netmask']
 	         f.write("Network Mask: {0} \n".format(netmask))
@@ -381,10 +381,7 @@ def main(args):
 	# NMAP subnet excluding our IP #
 	## make -Pn, -F, and speed (-T#) switch for during the run
 	print("Nmap scan started. This may take a while...")
-	try:
-		nm.scan(hosts=str(subnet), arguments='-sV -T4 -p- -Pn --script vulners --exclude ' + IP)
-	except:
-		print("oops")
+	nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
 	print("Nmap scan complete!")
 
 	hostsCount = len(nm.all_hosts())

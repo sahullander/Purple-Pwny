@@ -1,9 +1,10 @@
-Begin Script @ 2020-04-12 00:34:53.310811 
+Begin Script @ 2020-04-14 10:48:12.514097 
 
 ---- Script options ----
 --> Bruteforce user file: /home/non-root/Purple-Pwny/bruteforce/userList.txt
 --> Bruteforce password file: /home/non-root/Purple-Pwny/bruteforce/passList.txt
 --> Max payloads per exploit module: 5 
+--> Exploit ranks command: rank:excellent || rank:great
 
 ------ Your Host ------
 Host IP: 10.0.0.6 
@@ -24,8 +25,8 @@ Count of alive hosts: 6
 		None CVEs: 1
 		Total CVEs: 99.0
 		Services Found: 30
-		Services with MS-Modules or BF-able: 13
-		Services Exploited: 13
+		Services with MS-Modules or BF-able: 15
+		Services Exploited: 9
 	IP: 10.0.0.7 - Linux 2.6.27 - 2.6.28
 		Severity: Critical (4)
 		Critical CVEs: 24
@@ -39,7 +40,7 @@ Count of alive hosts: 6
 		Services Exploited: 1
 
 --- Vulnerability Level: High ---
-	IP: 10.0.0.8 - Linux 2.6.27 - 2.6.28
+	IP: 10.0.0.8 - Linux 2.6.8 - 2.6.30
 		Severity: High (3)
 		Critical CVEs: 0
 		High CVEs: 5
@@ -61,7 +62,7 @@ Count of alive hosts: 6
 		None CVEs: 0
 		Total CVEs: 0
 		Services Found: 7
-		Services with MS-Modules or BF-able: 1
+		Services with MS-Modules or BF-able: 2
 		Services Exploited: 1
 	IP: 10.0.0.14 - Microsoft Windows Server 2008 or 2008 Beta 3
 		Severity: Inconclusive (-1)
@@ -87,4 +88,4 @@ Count of alive hosts: 6
 		Services Exploited: 0
 
 
- End Script @ 2020-04-12 01:01:11.304986    ---   Total Runtime: 0:26:17.994175
+ End Script @ 2020-04-14 11:24:01.298575    ---   Total Runtime: 0:35:48.784478

@@ -1,0 +1,3 @@
+#,Name,Disclosure Date,Rank,Check,Description
+"24","exploit/linux/misc/drb_remote_codeexec","2011-03-23","excellent","No","Distributed Ruby Remote Code Execution"
+"35","exploit/multi/http/rails_actionpack_inline_exec","2016-03-01","excellent","No","Ruby on Rails ActionPack Inline ERB Code Execution"

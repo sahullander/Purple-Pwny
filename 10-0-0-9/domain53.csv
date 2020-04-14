@@ -1,4 +1,0 @@
-#,Name,Disclosure Date,Rank,Check,Description
-"6","exploit/multi/misc/bmc_patrol_cmd_exec","2019-01-17","excellent","No","BMC Patrol Agent Privilege Escalation Cmd Execution"
-"18","exploit/windows/misc/ais_esel_server_rce","2019-03-27","excellent","Yes","AIS logistics ESEL-Server Unauth SQL Injection RCE"
-"19","exploit/windows/misc/netcat110_nt","2004-12-27","great","No","Netcat v1.10 NT Stack Buffer Overflow"
