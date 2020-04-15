@@ -11,8 +11,8 @@ Video demonstration here: https://youtu.be/-kpJbzc2gzM
 
 ## Prerequisites
 The idea was to limit the number of external dependecies as much as possible, however a few non-standard libraries were used. Below is a simple guide that will allow you to install and test the script out. For the time-being, this script does not work in Windows enviroments. This is something that will be worked on as time goes on and demand calls for it.
-  1. install python3.7.6 (other versions may work, but have not tested)
-  2. `sudo pip3 install python-nmap, pymetasploit3, netifaces, pandas`
+  1. install python3.7.6 (other versions may work, but have not tested), nmap, and metasploit (if not included in your distro)
+  2. `sudo pip3 install python-nmap pymetasploit3 netifaces pandas`
   3. `git clone https://github.com/sahullander/Purple-Pwny.git`
 
 ## Executing the script
