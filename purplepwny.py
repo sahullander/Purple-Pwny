@@ -381,7 +381,7 @@ def main(args):
 	# NMAP subnet excluding our IP #
 	## make -Pn, -F, and speed (-T#) switch for during the run
 	print("Nmap scan started. This may take a while...")
-	nm.scan(hosts="10.0.0.9", arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
+	nm.scan(hosts=str(subnet), arguments='-O -sV -T4 -p- -Pn --script vulners --exclude ' + IP)
 	print("Nmap scan complete!")
 
 	hostsCount = len(nm.all_hosts())
