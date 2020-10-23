@@ -11,9 +11,11 @@ Video demonstration here: https://youtu.be/-kpJbzc2gzM
 
 ## Prerequisites
 The idea was to limit the number of external dependecies as much as possible, however a few non-standard libraries were used. Below is a simple guide that will allow you to install and test the script out. For the time-being, this script does not work in Windows enviroments. This is something that will be worked on as time goes on and demand calls for it.
-  1. install python3.7.6 (other versions may work, but have not tested), nmap, and metasploit (if not included in your distro)
-  2. `sudo pip3 install python-nmap pymetasploit3 netifaces pandas`
-  3. `git clone https://github.com/sahullander/Purple-Pwny.git`
+  1. `apt-get install python3 nmap curl`
+  2. `curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && chmod 755 msfinstall && ./msfinstall` 
+  3. `./msfconsole` </br> (type `y` when instructed to create new databse, and create a username/password when promted (or press 'enter' for defaults)
+  4. `sudo pip3 install python-nmap pymetasploit3 netifaces pandas`
+  5. `git clone https://github.com/sahullander/Purple-Pwny.git`
 
 ## Executing the script
 Executing the python script is easy. Change into the directory where "purplepwny.py" exists (inside the Purple-Pwny folder if you used git to download the script). Then run `sudo python3 purplepwny.py -h` to see a list of available options detailed below.
