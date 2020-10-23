@@ -81,5 +81,3 @@ A full explaination for CVSS v3.0 Ratings can be found here https://nvd.nist.gov
 
 ## Recognition
 Special thanks to Gleahm and tukkrrr for mental support throughout this project, and allowing me to think through my script during our 4 hour long phone calls. Also thank you to my professor who supported my project and gave me ideas/feedback when needed.
-
-[![cofee](https://imgur.com/6xDECWn.png)](https://streamlabs.com/sgsboog1/tip)
